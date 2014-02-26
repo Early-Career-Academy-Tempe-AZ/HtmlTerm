@@ -596,13 +596,13 @@ var TCrt = function () {
             var Y;
             var YDest;
             var YSource;
-				
+
             if (ke.keyCode === Keyboard.DOWN) {
                 if (FScrollBackPosition < FScrollBackTemp.length) {
                     FScrollBackPosition += 1;
                     that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(' ', 7), false);
                     that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done ", 1, FScreenSize.y, new TCharInfo(' ', 31), false);
-						
+
                     YDest = FScreenSize.y - 1;
                     YSource = FScrollBackPosition - 1;
                     XEnd = Math.min(FScreenSize.x, FScrollBackTemp[YSource].length);
@@ -619,7 +619,7 @@ var TCrt = function () {
                         }
                     }
                 }
-					
+
                 FInScrollBack = false;
             } else if (ke.keyCode === Keyboard.PAGE_DOWN) {
                 for (i = 0; i < (FScreenSize.y - 1) ; i++) {
@@ -636,7 +636,7 @@ var TCrt = function () {
                     FScrollBackPosition -= 1;
                     that.ScrollDownCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(" ", 7, false, false), false);
                     that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done ", 1, FScreenSize.y, new TCharInfo(' ', 31), false);
-						
+
                     YDest = 1;
                     YSource = FScrollBackPosition - (FScreenSize.y - 1);
                     XEnd = Math.min(FScreenSize.x, FScrollBackTemp[YSource].length);
@@ -650,7 +650,7 @@ var TCrt = function () {
 
             return;
         }
-        
+
         var keyString = "";
 
         if (ke.ctrlKey) {
@@ -737,6 +737,28 @@ var TCrt = function () {
 
     this.OnKeyFocusChange = function (fe) {
         fe.preventDefault();
+    };
+
+    this.PushKeyDown = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
+        OnKeyDown({
+            altKey: alt,
+            charCode: pushedCharCode,
+            ctrlKey: ctrl,
+            keyCode: pushedKeyCode,
+            shiftKey: shift,
+            preventDefault: function () { /* do nothing */ }
+        });
+    };
+
+    this.PushKeyPress = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
+        OnKeyPress({
+            altKey: alt,
+            charCode: pushedCharCode,
+            ctrlKey: ctrl,
+            keyCode: pushedKeyCode,
+            shiftKey: shift,
+            preventDefault: function () { /* do nothing */ }
+        });
     };
 
     this.ReadKey = function () {
@@ -930,7 +952,7 @@ var TCrt = function () {
 
         if (AUpdateBuffer) {
             // Now to adjust the buffer
-            var NewRow ;
+            var NewRow;
             var X;
             var Y;
 

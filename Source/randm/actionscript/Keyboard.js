@@ -19,7 +19,12 @@
 */
 var Keyboard = 0;
 var TKeyboard = function () {
+    this.ALTERNATE = 18;
+    this.APPMENU = 1001;
     this.BACKSPACE = 8;
+    this.BREAK = 1000;
+    this.CAPS_LOCK = 20;
+    this.CONTROL = 17;
     this.DELETE = 46;
     this.DOWN = 40;
     this.END = 35;
@@ -40,11 +45,14 @@ var TKeyboard = function () {
     this.HOME = 36;
     this.INSERT = 45;
     this.LEFT = 37;
+    this.NUM_LOCK = 1002;
     this.PAGE_DOWN = 34;
     this.PAGE_UP = 33;
     this.RIGHT = 39;
+    this.SHIFT = 16;
     this.SPACE = 32;
     this.TAB = 9;
+    this.WINDOWS = 1003;
     this.UP = 38;
 };
 Keyboard = new TKeyboard();
