@@ -104,21 +104,20 @@ var Base64 = {
             // Skip illegal characters and whitespace
             if (c === -1) {
                 console.error("Illegal character code " + data.charCodeAt(i) + " at position " + i);
-                continue;
-            }
+            } else {
+                // Collect data into leftdata, update bitcount
+                leftdata = (leftdata << 6) | c;
+                leftbits += 6;
 
-            // Collect data into leftdata, update bitcount
-            leftdata = (leftdata << 6) | c;
-            leftbits += 6;
-
-            // If we have 8 or more bits, append 8 bits to the result
-            if (leftbits >= 8) {
-                leftbits -= 8;
-                // Append if not padding.
-                if (!padding) {
-                    result[idx++] = (leftdata >> leftbits) & 0xff;
+                // If we have 8 or more bits, append 8 bits to the result
+                if (leftbits >= 8) {
+                    leftbits -= 8;
+                    // Append if not padding.
+                    if (!padding) {
+                        result[idx++] = (leftdata >> leftbits) & 0xff;
+                    }
+                    leftdata &= (1 << leftbits) - 1;
                 }
-                leftdata &= (1 << leftbits) - 1;
             }
         }
         /* END LOOP */
@@ -5782,11 +5781,14 @@ var THtmlTerm = function () {
         FSaveFilesButton.Center(Crt.Canvas);
     };
 
-    this.Connect = function (AHost, APort) {
+    this.Connect = function (AHost, APort, AProxyHost, AProxyPort) {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
 
         FWebSocketHostName = AHost;
         FWebSocketPort = APort;
+        FProxyWebSocketHostName = AProxyHost;
+        FProxyWebSocketPort = AProxyPort;
+
         OnConnectButtonClick("EIConnect");
     };
 

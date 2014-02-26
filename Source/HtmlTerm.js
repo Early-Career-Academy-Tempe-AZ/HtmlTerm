@@ -228,11 +228,27 @@ var THtmlTerm = function () {
         FSaveFilesButton.Center(Crt.Canvas);
     };
 
-    this.Connect = function (AHost, APort) {
+    this.Connect = function (AHost, APort, AProxyHost, AProxyPort) {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
+
+        // Remove events for old connection
+        FConnection.onclose = null;
+        FConnection.onconnect = null;
+        FConnection.onioerror = null;
+        FConnection.onsecurityerror = null;
+
+        // Create new connection
+        FConnection = new TTelnet();
+        FConnection.onclose = OnConnectionClose;
+        FConnection.onconnect = OnConnectionConnect;
+        FConnection.onioerror = OnConnectionIOError;
+        FConnection.onsecurityerror = OnConnectionSecurityError;
 
         FWebSocketHostName = AHost;
         FWebSocketPort = APort;
+        FProxyWebSocketHostName = AProxyHost;
+        FProxyWebSocketPort = AProxyPort;
+
         OnConnectButtonClick("EIConnect");
     };
 
@@ -658,11 +674,13 @@ var THtmlTerm = function () {
     };
 
     ShowConnectButton = function () {
-        Crt.Canvas.style.opacity = 0.4;
-        Crt.HideCursor();
+        if (!that.Connected()) {
+            Crt.Canvas.style.opacity = 0.4;
+            Crt.HideCursor();
 
-        FConnectButton.Image.addEventListener("click", OnConnectButtonClick, false);
-        FConnectButton.Show();
+            FConnectButton.Image.addEventListener("click", OnConnectButtonClick, false);
+            FConnectButton.Show();
+        }
     };
 
     ShowSaveFilesButton = function () {
