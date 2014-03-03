@@ -19,6 +19,9 @@ REM  along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 ECHO // HtmlTerm.js > Release\HtmlTerm.js
 
 TYPE Source\ImpliedGlobals.js >> Release\HtmlTerm.js
+
+TYPE Source\string-base64.js >> Release\HtmlTerm.js
+
 TYPE Source\randm\actionscript\ByteArray.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\FileReference.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\Keyboard.js >> Release\HtmlTerm.js
@@ -60,13 +63,17 @@ TYPE Source\randm\xfer\TYModemSend.js >> Release\HtmlTerm.js
 
 TYPE Source\HtmlTerm.js >> Release\HtmlTerm.js
 
-REM Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
+Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
 
 COPY Source\randm\crt\font\TFont437.js Release\HtmlTerm.font-437.js
 COPY Source\randm\crt\font\TFontAmiga.js Release\HtmlTerm.font-amiga.js
 COPY Source\randm\crt\font\TFontAtari.js Release\HtmlTerm.font-atari.js
 COPY Source\randm\crt\font\TFontIntl.js Release\HtmlTerm.font-intl.js
 
+COPY Release\HtmlTerm.js ..\ftelnet\flash\html-template\
+COPY Release\HtmlTerm.js ..\ftelnet\flash\bin-debug\
+COPY Release\HtmlTerm.js ..\ftelnet\flash\bin-release\
+COPY Release\HtmlTerm.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
 COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\html-template\
 COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\bin-debug\
 COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\bin-release\
