@@ -44,7 +44,7 @@ var THtmlTerm = function () {
     var FScreenColumns = 80;
     var FScreenRows = 25;
     var FServerName = "fTelnet / HtmlTerm / GameSrv Support Server";
-    var FSplashScreen = "G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCogZm9yIHRoZSBXZWIgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzE7MzBtICogTk9URTogSHRtbFRlcm0gaXMgYWN0dWFsbHkgYSBXZWJTb2NrZXQgY2xpZW50LCBub3QgYSBUZWxuZXQgY2xpZW50DQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==";
+    var FSplashScreen = "G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==";
 
     // Private methods
     var CenterSaveFilesButton = function () { }; // Do nothing
@@ -103,6 +103,8 @@ var THtmlTerm = function () {
             Crt.Blink = FBlink;
             Crt.SetFont(FCodePage, FFontWidth, FFontHeight);
             Crt.SetScreenSize(FScreenColumns, FScreenRows);
+            Crt.Window(1, 1, 80, FScreenRows - 1);
+            Crt.FastWrite(" Not connected                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
             Crt.Canvas.addEventListener(Crt.FONT_CHANGED, OnCrtFontChanged, false);
             Crt.Canvas.addEventListener(Crt.SCREEN_SIZE_CHANGED, OnCrtScreenSizeChanged, false);
 
@@ -142,7 +144,7 @@ var THtmlTerm = function () {
             Ansi.onesc255n = OnAnsiESC255n;
             Ansi.onescQ = OnAnsiESCQ;
 
-            Crt.Write(btoa(FSplashScreen));
+            Ansi.Write(atob(FSplashScreen));
         } else {
             trace("HtmlTerm Error: Unable to init Crt");
         }
@@ -153,9 +155,33 @@ var THtmlTerm = function () {
         return true;
     };
 
+    this.__defineGetter__("BitsPerSecond", function () {
+        return FBitsPerSecond;
+    });
+
+    this.__defineSetter__("BitsPerSecond", function (ABitsPerSecond) {
+        FBitsPerSecond = ABitsPerSecond;
+    });
+
+    this.__defineGetter__("Blink", function () {
+        return FBlink;
+    });
+
+    this.__defineSetter__("Blink", function (ABlink) {
+        FBlink = ABlink;
+    });
+
     CenterSaveFilesButton = function () {
         FSaveFilesButton.Center(Crt.Canvas);
     };
+
+    this.__defineGetter__("CodePage", function () {
+        return FCodePage;
+    });
+
+    this.__defineSetter__("CodePage", function (ACodePage) {
+        FCodePage = ACodePage;
+    });
 
     this.Connect = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
@@ -173,10 +199,12 @@ var THtmlTerm = function () {
 
         // Make connection
         if (FProxyHostname === "") {
-            Crt.WriteLn("Connecting to " + FServerName + " (" + FHostname + ":" + FPort + ")");
-            FConnection.connect(FHostname, FWebSocketPort);
+            Crt.FastWrite(" Connecting to                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+            Crt.FastWrite(FHostname + ":" + FPort, 16, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+            FConnection.connect(FHostname, FPort);
         } else {
-            Crt.WriteLn("Connecting to " + FServerName + " (" + FHostname + ":" + FWebSocketPort + ") via proxy");
+            Crt.FastWrite(" Connecting to                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+            Crt.FastWrite(FHostname + ":" + FPort + " via proxy", 16, FScreenRows, new TCharInfo(' ', 31, false, false), true);
             FConnection.connect(FProxyHostname, FProxyPort);
         }
     };
@@ -215,6 +243,38 @@ var THtmlTerm = function () {
         FYModemReceive.Download();
     };
 
+    this.__defineGetter__("Enter", function () {
+        return FEnter;
+    });
+
+    this.__defineSetter__("Enter", function (AEnter) {
+        FEnter = AEnter;
+    });
+
+    this.__defineGetter__("FontHeight", function () {
+        return FFontHeight;
+    });
+
+    this.__defineSetter__("FontHeight", function (AFontHeight) {
+        FFontHeight = AFontHeight;
+    });
+
+    this.__defineGetter__("FontWidth", function () {
+        return FFontWidth;
+    });
+
+    this.__defineSetter__("FontWidth", function (AFontWidth) {
+        FFontWidth = AFontWidth;
+    });
+
+    this.__defineGetter__("Hostname", function () {
+        return FHostname;
+    });
+
+    this.__defineSetter__("Hostname", function (AHostname) {
+        FHostname = AHostname;
+    });
+
     OnAnsiESC5n = function (AEvent) {
         FConnection.writeString("\x1B[0n");
     };
@@ -224,7 +284,7 @@ var THtmlTerm = function () {
     };
 
     OnAnsiESC255n = function (AEvent) {
-        FConnection.writeString(Ansi.CursorPosition(Crt.ScreenRows, Crt.ScreenCols));
+        FConnection.writeString(Ansi.CursorPosition(Crt.WindRows, Crt.WindCols));
     };
 
     OnAnsiESCQ = function (AEvent) {
@@ -242,11 +302,22 @@ var THtmlTerm = function () {
         // Remove save button (if visible)
         FSaveFilesButton.Image.removeEventListener("click", OnSaveFilesButtonClick, false);
         FSaveFilesButton.Hide();
+
+        Crt.FastWrite(" Disconnected from                                                              ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+        Crt.FastWrite(FHostname + ":" + FPort, 20, FScreenRows, new TCharInfo(' ', 31, false, false), true);
     };
 
     OnConnectionConnect = function (e) {
         Crt.ClrScr();
         if (FProxyHostname !== "") { FConnection.writeString(FHostname + ":" + FPort + "\r\n"); }
+
+        if (FProxyHostname === "") {
+            Crt.FastWrite(" Connected to                                                                   ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+            Crt.FastWrite(FHostname + ":" + FPort, 15, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+        } else {
+            Crt.FastWrite(" Connected to                                                                   ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+            Crt.FastWrite(FHostname + ":" + FPort + " via proxy", 15, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+        }
     };
 
     OnConnectionIOError = function (e) {
@@ -254,7 +325,13 @@ var THtmlTerm = function () {
     };
 
     OnConnectionSecurityError = function (see) {
-        Crt.WriteLn("Unable to connect...");
+        if (FProxyHostname === "") {
+            Crt.FastWrite(" Unable to connect to                                                           ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+            Crt.FastWrite(FHostname + ":" + FPort, 23, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+        } else {
+            Crt.FastWrite(" Unable to connect to                                                           ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+            Crt.FastWrite(FHostname + ":" + FPort + " via proxy", 23, FScreenRows, new TCharInfo(' ', 31, false, false), true);
+        }
     };
 
     OnCrtFontChanged = function (e) {
@@ -484,6 +561,54 @@ var THtmlTerm = function () {
         //TODO navigateToURL(new URLRequest("http://www.ftelnet.ca/"));
     };
 
+    this.__defineGetter__("Port", function () {
+        return FPort;
+    });
+
+    this.__defineSetter__("Port", function (APort) {
+        FPort = APort;
+    });
+
+    this.__defineGetter__("ProxyHostname", function () {
+        return FProxyHostname;
+    });
+
+    this.__defineSetter__("ProxyHostname", function (AProxyHostname) {
+        FProxyHostname = AProxyHostname;
+    });
+
+    this.__defineGetter__("ProxyPort", function () {
+        return FProxyPort;
+    });
+
+    this.__defineSetter__("ProxyPort", function (AProxyPort) {
+        FProxyPort = AProxyPort;
+    });
+
+    this.__defineGetter__("ScreenColumns", function () {
+        return FScreenColumns;
+    });
+
+    this.__defineSetter__("ScreenColumns", function (AScreenColumns) {
+        FScreenColumns = AScreenColumns;
+    });
+
+    this.__defineGetter__("ScreenRows", function () {
+        return FScreenRows;
+    });
+
+    this.__defineSetter__("ScreenRows", function (AScreenRows) {
+        FScreenRows = AScreenRows;
+    });
+
+    this.__defineGetter__("ServerName", function () {
+        return FServerName;
+    });
+
+    this.__defineSetter__("ServerName", function (AServerName) {
+        FServerName = AServerName;
+    });
+
     SetupContextMenu = function () {
         /* TODO Create a ContextMenu control
         var mnuMain = new ContextMenu();
@@ -519,5 +644,13 @@ var THtmlTerm = function () {
         FSaveFilesButton.Image.addEventListener('click', OnSaveFilesButtonClick, false);
         FSaveFilesButton.Show();
     };
+
+    this.__defineGetter__("SplashScreen", function () {
+        return FSplashScreen;
+    });
+
+    this.__defineSetter__("SplashScreen", function (ASplashScreen) {
+        FSplashScreen = ASplashScreen;
+    });
 };
 HtmlTerm = new THtmlTerm();
