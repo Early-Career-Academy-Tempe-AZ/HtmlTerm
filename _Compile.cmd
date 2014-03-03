@@ -24,19 +24,18 @@ TYPE Source\randm\actionscript\FileReference.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\Keyboard.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\Point.js >> Release\HtmlTerm.js
 
-TYPE Source\Connect.ans.js >> Release\HtmlTerm.js
 TYPE Source\Helper.js >> Release\HtmlTerm.js
 TYPE Source\StringUtils.js >> Release\HtmlTerm.js
 
-TYPE Source\client\connectbutton\TConnectButton.js >> Release\HtmlTerm.js
 TYPE Source\client\savefilesbutton\TSaveFilesButton.js >> Release\HtmlTerm.js
 
 TYPE Source\randm\crt\cursor\BlinkState.js >> Release\HtmlTerm.js
 TYPE Source\randm\crt\cursor\TCursor.js >> Release\HtmlTerm.js
 TYPE Source\randm\crt\font\TFont.js >> Release\HtmlTerm.js
-REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFont2.js >> Release\HtmlTerm.js
+REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFont437.js >> Release\HtmlTerm.js
 REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFontAmiga.js >> Release\HtmlTerm.js
 REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFontAtari.js >> Release\HtmlTerm.js
+REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFontIntl.js >> Release\HtmlTerm.js
 TYPE Source\randm\crt\BorderStyle.js >> Release\HtmlTerm.js
 TYPE Source\randm\crt\ContentAlignment.js >> Release\HtmlTerm.js
 TYPE Source\randm\crt\KeyPressEvent.js >> Release\HtmlTerm.js
@@ -61,21 +60,30 @@ TYPE Source\randm\xfer\TYModemSend.js >> Release\HtmlTerm.js
 
 TYPE Source\HtmlTerm.js >> Release\HtmlTerm.js
 
-Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
+REM Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
 
-COPY Source\randm\crt\font\TFont2.js Release\HtmlTerm.font2.js
-COPY Source\randm\crt\font\TFontAmiga.js Release\HtmlTerm.fontamiga.js
-COPY Source\randm\crt\font\TFontAtari.js Release\HtmlTerm.fontatari.js
+COPY Source\randm\crt\font\TFont437.js Release\HtmlTerm.font-437.js
+COPY Source\randm\crt\font\TFontAmiga.js Release\HtmlTerm.font-amiga.js
+COPY Source\randm\crt\font\TFontAtari.js Release\HtmlTerm.font-atari.js
+COPY Source\randm\crt\font\TFontIntl.js Release\HtmlTerm.font-intl.js
 
 COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\html-template\
 COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\bin-debug\
 COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.font2.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.font2.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.font2.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.fontamiga.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.fontamiga.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.fontamiga.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.fontatari.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.fontatari.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.fontatari.js ..\ftelnet\flash\bin-release\
+COPY Release\HtmlTerm.compiled.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
+COPY Release\HtmlTerm.font-437.js ..\ftelnet\flash\html-template\
+COPY Release\HtmlTerm.font-437.js ..\ftelnet\flash\bin-debug\
+COPY Release\HtmlTerm.font-437.js ..\ftelnet\flash\bin-release\
+COPY Release\HtmlTerm.font-437.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
+COPY Release\HtmlTerm.font-amiga.js ..\ftelnet\flash\html-template\
+COPY Release\HtmlTerm.font-amiga.js ..\ftelnet\flash\bin-debug\
+COPY Release\HtmlTerm.font-amiga.js ..\ftelnet\flash\bin-release\
+COPY Release\HtmlTerm.font-amiga.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
+COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\html-template\
+COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\bin-debug\
+COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\bin-release\
+COPY Release\HtmlTerm.font-atari.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
+COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\html-template\
+COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-debug\
+COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-release\
+COPY Release\HtmlTerm.font-intl.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\

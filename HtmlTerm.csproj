@@ -55,17 +55,11 @@
   <ItemGroup>
     <Content Include="CHANGELOG.txt" />
     <Content Include="FileSaver.js" />
-    <Content Include="Source\client\connectbutton\Down.png" />
-    <Content Include="Source\client\connectbutton\General-Connect-icon.png" />
-    <Content Include="Source\client\connectbutton\Over.png" />
-    <Content Include="Source\client\connectbutton\TConnectButton.js" />
-    <Content Include="Source\client\connectbutton\Up.png" />
     <Content Include="Source\client\savefilesbutton\Down.png" />
     <Content Include="Source\client\savefilesbutton\filesave-48.png" />
     <Content Include="Source\client\savefilesbutton\Over.png" />
     <Content Include="Source\client\savefilesbutton\TSaveFilesButton.js" />
     <Content Include="Source\client\savefilesbutton\Up.png" />
-    <Content Include="Source\Connect.ans.js" />
     <Content Include="Source\Helper.js" />
     <Content Include="Source\HtmlTerm.js" />
     <Content Include="Source\ImpliedGlobals.js" />
@@ -78,11 +72,12 @@
     <Content Include="Source\randm\ansi\ESCQEvent.js" />
     <Content Include="Source\randm\crt\BorderStyle.js" />
     <Content Include="Source\randm\crt\ContentAlignment.js" />
+    <Content Include="Source\randm\crt\font\TFontIntl.js" />
     <Content Include="Source\randm\crt\TCharInfo.js" />
     <Content Include="Source\randm\crt\Crt.js" />
     <Content Include="Source\randm\crt\cursor\BlinkState.js" />
     <Content Include="Source\randm\crt\cursor\TCursor.js" />
-    <Content Include="Source\randm\crt\font\TFont2.js" />
+    <Content Include="Source\randm\crt\font\TFont437.js" />
     <Content Include="Source\randm\crt\font\TFontAmiga.js" />
     <Content Include="Source\randm\crt\font\TFontAtari.js" />
     <Content Include="Source\randm\crt\KeyPressEvent.js" />
@@ -102,7 +97,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Source\client\connectbutton\Icon Source.url" />
     <None Include="Source\client\savefilesbutton\Icon Source.url" />
     <Content Include="Source\randm\crt\font\TFont.js" />
     <Content Include="Source\StringUtils.js" />
