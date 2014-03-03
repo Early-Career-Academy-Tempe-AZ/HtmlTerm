@@ -73,7 +73,6 @@ var THtmlTerm = function () {
     var OnUploadListFileSelect = function (e) { }; // Do nothing
     var OnUploadMenuClick = function (cme) { }; // Do nothing
     var OnWebPageMenuClick = function (cme) { }; // Do nothing
-    var SetupContextMenu = function () { }; // Do nothing
     var ShowSaveFilesButton = function () { }; // Do nothing
 
     this.Init = function (AContainerID) {
@@ -94,9 +93,6 @@ var THtmlTerm = function () {
                 return false;
             }
         }
-
-        // Add the entries to the right-click context menu
-        SetupContextMenu();
 
         // Seup the crt window
         if (Crt.Init(FContainer)) {
@@ -608,35 +604,6 @@ var THtmlTerm = function () {
     this.__defineSetter__("ServerName", function (AServerName) {
         FServerName = AServerName;
     });
-
-    SetupContextMenu = function () {
-        /* TODO Create a ContextMenu control
-        var mnuMain = new ContextMenu();
-        mnuMain.hideBuiltInItems();
-
-        // Add info items
-        var mnuWebPage = new ContextMenuItem("fTelnet v10.09.05");
-        mnuWebPage.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, OnWebPageMenuClick);
-        mnuMain.customItems.push(mnuWebPage);
-        mnuMain.customItems.push(new ContextMenuItem("© 2010 Rick Parrish, R&&M Software", false, false));
-        var mnuDonate = new ContextMenuItem("Donate");
-        mnuDonate.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, OnDonateMenuClick);
-        mnuMain.customItems.push(mnuDonate);
-        var mnuHelp = new ContextMenuItem("Help");
-        mnuHelp.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, OnHelpMenuClick);
-        mnuMain.customItems.push(mnuHelp);
-
-        // Add download and upload items
-        var mnuUpload = new ContextMenuItem("Upload", true);
-        mnuUpload.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, OnUploadMenuClick);
-        mnuMain.customItems.push(mnuUpload);
-        var mnuDownload = new ContextMenuItem("Download");
-        mnuDownload.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, OnDownloadMenuClick);
-        mnuMain.customItems.push(mnuDownload);
-
-        contextMenu = mnuMain;
-        */
-    };
 
     ShowSaveFilesButton = function () {
         Crt.Canvas.style.opacity = 0.4;
