@@ -118,6 +118,7 @@ var TCrt = function () {
 
         // Create the canvas
         FCanvas = document.createElement('canvas');
+        FCanvas.id = "HtmlTermCanvas";
         FCanvas.innerHTML = "Your browser doesn't support the HTML5 Canvas element!<br>The latest version of every major web browser supports this element, so please consider upgrading now:<ul><li><a href=\"http://www.mozilla.com/firefox/\">Mozilla Firefox</a></li><li><a href=\"http://www.google.com/chrome\">Google Chrome</a></li><li><a href=\"http://www.apple.com/safari/\">Apple Safari</a></li><li><a href=\"http://www.opera.com/\">Opera</a></li><li><a href=\"http://windows.microsoft.com/en-US/internet-explorer/products/ie/home\">MS Internet Explorer</a></li></ul>";
         FCanvas.width = FFont.Width * FScreenSize.x;
         FCanvas.height = FFont.Height * FScreenSize.y;
