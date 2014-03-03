@@ -21,11 +21,9 @@ var HtmlTerm = function () { }; // Do nothing
 var THtmlTerm = function () {
     // Private variables
     var that = this;
-    var FConnectButton = 0;
     var FConnection = 0;
     var FContainer = 0;
     var FLastTimer = 0;
-    var FLoaded = false;
     var FSaveFilesButton = 0;
     var FTimer = 0;
     var FUploadList = 0;
@@ -33,36 +31,28 @@ var THtmlTerm = function () {
     var FYModemSend = 0;
 
     // Settings to be loaded from HTML
-    var FAutoConnect = false;
     var FBitsPerSecond = 115200;
     var FBlink = true;
-    var FBorderStyle = "Win7";
     var FCodePage = "437";
-    var FConnectAnsi = "connect.ans";
     var FEnter = "\r";
     var FFontHeight = 16;
     var FFontWidth = 9;
-    var FProxyWebSocketHostName = "";
-    var FProxyWebSocketPort = 11235;
+    var FProxyHostname = "";
+    var FProxyPort = 11235;
     var FScreenColumns = 80;
     var FScreenRows = 25;
-    var FSendOnConnect = "";
-    var FServerName = "fTelnet and HtmlTerm Support BBS";
-    var FWebSocketHostName = "bbs.ftelnet.ca";
-    var FWebSocketPort = 1123;
+    var FServerName = "fTelnet / HtmlTerm / GameSrv Support Server";
+    var FHostname = "bbs.ftelnet.ca";
+    var FPort = 1123;
 
     // Private methods
-    var CenterConnectButton = function () { }; // Do nothing
     var CenterSaveFilesButton = function () { }; // Do nothing
     var LoadFile = function (f, len) { }; // Do nothing
-    var LoadSettings = function (AClientVars) { }; // Do nothing
     var OnAnsiESC5n = function (AEvent) { }; // Do nothing
     var OnAnsiESC6n = function (AEvent) { }; // Do nothing
     var OnAnsiESC255n = function (AEvent) { }; // Do nothing
     var OnAnsiESCQ = function (AEvent) { }; // Do nothing
     var OnCloseButtonClick = function (me) { }; // Do nothing
-    var OnConnectButtonClick = function (me) { }; // Do nothing
-    var OnConnectButtonGraphicChanged = function (e) { }; // Do nothing
     var OnConnectionClose = function (e) { }; // Do nothing
     var OnConnectionConnect = function (e) { }; // Do nothing
     var OnConnectionIOError = function (e) { }; // Do nothing
@@ -83,10 +73,9 @@ var THtmlTerm = function () {
     var OnUploadMenuClick = function (cme) { }; // Do nothing
     var OnWebPageMenuClick = function (cme) { }; // Do nothing
     var SetupContextMenu = function () { }; // Do nothing
-    var ShowConnectButton = function () { }; // Do nothing
     var ShowSaveFilesButton = function () { }; // Do nothing
 
-    this.Init = function (AContainerID, AClientVars) {
+    this.Init = function (AContainerID) {
         // Ensure we have our container
         if (document.getElementById(AContainerID) === null) {
             trace('HtmlTerm Error: Your document is missing the required element with id="' + AContainerID + '"');
@@ -104,9 +93,6 @@ var THtmlTerm = function () {
                 return false;
             }
         }
-
-        // Load the settings from the flashvars parameter
-        LoadSettings(AClientVars);
 
         // Add the entries to the right-click context menu
         SetupContextMenu();
@@ -143,19 +129,6 @@ var THtmlTerm = function () {
                 return false;
             }
 
-            // Create the telnet object
-            FConnection = new TTelnet();
-            FConnection.onclose = OnConnectionClose;
-            FConnection.onconnect = OnConnectionConnect;
-            FConnection.onioerror = OnConnectionIOError;
-            FConnection.onsecurityerror = OnConnectionSecurityError;
-
-            // Create the connect button
-            FConnectButton = new TConnectButton();
-            FContainer.appendChild(FConnectButton.Image);
-            FConnectButton.ongraphicchanged = OnConnectButtonGraphicChanged;
-            CenterConnectButton();
-
             // Create the Save Files button
             FSaveFilesButton = new TSaveFilesButton();
             FContainer.appendChild(FSaveFilesButton.Image);
@@ -167,48 +140,6 @@ var THtmlTerm = function () {
             Ansi.onesc6n = OnAnsiESC6n;
             Ansi.onesc255n = OnAnsiESC255n;
             Ansi.onescQ = OnAnsiESCQ;
-
-            // And either auto-connect, or display the connect button
-            if (FAutoConnect) {
-                OnConnectButtonClick("AutoConnect");
-            } else {
-                ShowConnectButton();
-                Crt.Canvas.style.opacity = 1;
-
-                // Load the welcome ANSI
-                var http = new XMLHttpRequest();
-                try {
-                    http.onreadystatechange = function () {
-                        try {
-                            if (this.readyState === 4) {
-                                // Check for success
-                                if (this.status === 200) {
-                                    // Check for content
-                                    if (this.responseText === '') {
-                                        // No content, use built-in ANSI
-                                        Ansi.Write(ConnectAns);
-                                    } else {
-                                        // Use the ANSI we loaded from the server
-                                        Ansi.Write(this.responseText);
-                                    }
-                                } else {
-                                    // No success, use built-in ANSI
-                                    Ansi.Write(ConnectAns);
-                                }
-                            }
-                        } catch (ex) {
-                            // Unable to load, use built-in ANSI
-                            Ansi.Write(ConnectAns);
-                        }
-                    };
-                    if (http.overrideMimeType) { http.overrideMimeType('text/plain; charset=x-user-defined'); }
-                    http.open("GET", FConnectAnsi, true);
-                    http.send(null);
-                } catch (ex) {
-                    // Unable to load, use built-in ANSI
-                    Ansi.Write(ConnectAns);
-                }
-            }
         } else {
             trace("HtmlTerm Error: Unable to init Crt");
         }
@@ -216,26 +147,15 @@ var THtmlTerm = function () {
         // Create our main timer
         FTimer = setInterval(OnTimer, 50);
 
-        FLoaded = true;
         return true;
-    };
-
-    CenterConnectButton = function () {
-        FConnectButton.Center(Crt.Canvas);
     };
 
     CenterSaveFilesButton = function () {
         FSaveFilesButton.Center(Crt.Canvas);
     };
 
-    this.Connect = function (AHost, APort, AProxyHost, AProxyPort) {
+    this.Connect = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
-
-        // Remove events for old connection
-        FConnection.onclose = null;
-        FConnection.onconnect = null;
-        FConnection.onioerror = null;
-        FConnection.onsecurityerror = null;
 
         // Create new connection
         FConnection = new TTelnet();
@@ -244,12 +164,18 @@ var THtmlTerm = function () {
         FConnection.onioerror = OnConnectionIOError;
         FConnection.onsecurityerror = OnConnectionSecurityError;
 
-        FWebSocketHostName = AHost;
-        FWebSocketPort = APort;
-        FProxyWebSocketHostName = AProxyHost;
-        FProxyWebSocketPort = AProxyPort;
+        // Reset display
+        Crt.NormVideo();
+        Crt.ClrScr();
 
-        OnConnectButtonClick("EIConnect");
+        // Make connection
+        if (FProxyHostname === "") {
+            Crt.WriteLn("Connecting to " + FServerName + " (" + FHostname + ":" + FPort + ")");
+            FConnection.connect(FHostname, FWebSocketPort);
+        } else {
+            Crt.WriteLn("Connecting to " + FServerName + " (" + FHostname + ":" + FWebSocketPort + ") via proxy");
+            FConnection.connect(FProxyHostname, FProxyPort);
+        }
     };
 
     this.Connected = function () {
@@ -262,6 +188,12 @@ var THtmlTerm = function () {
         if (!FConnection.connected) { return; }
 
         FConnection.close();
+        FConnection.onclose = null;
+        FConnection.onconnect = null;
+        FConnection.onioerror = null;
+        FConnection.onsecurityerror = null;
+        FConnection = null;
+
         OnConnectionClose("Disconnect");
     };
 
@@ -278,67 +210,6 @@ var THtmlTerm = function () {
 
         // Download the file
         FYModemReceive.Download();
-    };
-
-    this.__defineGetter__("Loaded", function () {
-        return FLoaded;
-    });
-
-    LoadSettings = function (AClientVars) {
-        if (AClientVars === undefined) { return; }
-        if (AClientVars.AutoConnect !== undefined) { FAutoConnect = AClientVars.AutoConnect; }
-        if (AClientVars.BitsPerSecond !== undefined) { FBitsPerSecond = AClientVars.BitsPerSecond; }
-        if (AClientVars.Blink !== undefined) { FBlink = AClientVars.Blink; }
-        if (AClientVars.BorderStyle !== undefined) { FBorderStyle = AClientVars.BorderStyle; }
-        if (AClientVars.CodePage !== undefined) { FCodePage = AClientVars.CodePage; }
-        if (AClientVars.ConnectAnsi !== undefined) { FConnectAnsi = AClientVars.ConnectAnsi; }
-        if (AClientVars.Enter !== undefined) { FEnter = AClientVars.Enter; }
-        if (AClientVars.FontHeight !== undefined) { FFontHeight = AClientVars.FontHeight; }
-        if (AClientVars.FontWidth !== undefined) { FFontWidth = AClientVars.FontWidth; }
-        if (AClientVars.ProxyWebSocketHostName !== undefined) { FProxyWebSocketHostName = AClientVars.ProxyWebSocketHostName; }
-        if (AClientVars.ProxyWebSocketPort !== undefined) { FProxyWebSocketPort = AClientVars.ProxyWebSocketPort; }
-        if (AClientVars.ScreenColumns !== undefined) { FScreenColumns = AClientVars.ScreenColumns; }
-        if (AClientVars.ScreenRows !== undefined) { FScreenRows = AClientVars.ScreenRows; }
-        if (AClientVars.SendOnConnect !== undefined) { FSendOnConnect = AClientVars.SendOnConnect; }
-        if (AClientVars.ServerName !== undefined) { FServerName = AClientVars.ServerName; }
-        if (AClientVars.WebSocketHostName !== undefined) { FWebSocketHostName = AClientVars.WebSocketHostName; }
-        if (AClientVars.WebSocketPort !== undefined) { FWebSocketPort = AClientVars.WebSocketPort; }
-
-        // Font based overrides
-        if (FCodePage.indexOf("ATASCII") === 0) {
-            // Enable ATASCII settings
-            Crt.Atari = true;
-            FFontHeight = 16;
-            FFontWidth = (FCodePage.indexOf("HalfWidth") === -1) ? 16 : 8;
-        } else if (FCodePage.indexOf("BStrict") === 0) {
-            // Override font size
-            FFontHeight = 8;
-            FFontWidth = 8;
-        } else if (FCodePage.indexOf("BStruct") === 0) {
-            // Override font size
-            FFontHeight = 8;
-            FFontWidth = 8;
-        } else if (FCodePage.indexOf("MicroKnight") === 0) {
-            // Override font size
-            FFontHeight = 8;
-            FFontWidth = 8;
-        } else if (FCodePage.indexOf("MoSoul") === 0) {
-            // Override font size
-            FFontHeight = 8;
-            FFontWidth = 8;
-        } else if (FCodePage.indexOf("PotNoodle") === 0) {
-            // Override font size
-            FFontHeight = 8;
-            FFontWidth = 11;
-        } else if (FCodePage.indexOf("TopazPlus") === 0) {
-            // Override font size
-            FFontHeight = 8;
-            FFontWidth = 11;
-        } else if (FCodePage.indexOf("Topaz") === 0) {
-            // Override font size
-            FFontHeight = 8;
-            FFontWidth = 11;
-        }
     };
 
     OnAnsiESC5n = function (AEvent) {
@@ -364,46 +235,15 @@ var THtmlTerm = function () {
         if (confirm("Are you sure you'd like to disconnect from " + FServerName + "?")) { that.Disconnect(); }
     };
 
-    OnConnectButtonClick = function (me) {
-        Crt.Canvas.style.opacity = 1;
-        Crt.ShowCursor();
-
-        FConnectButton.Image.removeEventListener("click", OnConnectButtonClick, false);
-        FConnectButton.Hide();
-
-        FAutoConnect = false;
-
-        // Reset display
-        Crt.NormVideo();
-        Crt.ClrScr();
-
-        // Make connection
-        if (FProxyWebSocketHostName === "") {
-            Crt.WriteLn("Connecting to " + FServerName + " (" + FWebSocketHostName + ":" + FWebSocketPort + ")");
-            FConnection.connect(FWebSocketHostName, FWebSocketPort);
-        } else {
-            Crt.WriteLn("Connecting to " + FServerName + " (" + FWebSocketHostName + ":" + FWebSocketPort + ") via proxy");
-            FConnection.connect(FProxyWebSocketHostName, FProxyWebSocketPort);
-        }
-    };
-
-    OnConnectButtonGraphicChanged = function (e) {
-        CenterConnectButton();
-    };
-
     OnConnectionClose = function (e) {
         // Remove save button (if visible)
         FSaveFilesButton.Image.removeEventListener("click", OnSaveFilesButtonClick, false);
         FSaveFilesButton.Hide();
-
-        // Show the connect button
-        ShowConnectButton();
     };
 
     OnConnectionConnect = function (e) {
         Crt.ClrScr();
-        if (FProxyWebSocketHostName !== "") { FConnection.writeString(FWebSocketHostName + ":" + FWebSocketPort + "\r\n"); }
-        if (FSendOnConnect.length > 0) { FConnection.writeString(FSendOnConnect); }
+        if (FProxyHostname !== "") { FConnection.writeString(FHostname + ":" + FPort + "\r\n"); }
     };
 
     OnConnectionIOError = function (e) {
@@ -412,18 +252,15 @@ var THtmlTerm = function () {
 
     OnConnectionSecurityError = function (see) {
         Crt.WriteLn("Unable to connect...");
-        ShowConnectButton();
     };
 
     OnCrtFontChanged = function (e) {
         // Center the buttons
-        CenterConnectButton();
         CenterSaveFilesButton();
     };
 
     OnCrtScreenSizeChanged = function (e) {
         // Center the buttons
-        CenterConnectButton();
         CenterSaveFilesButton();
     };
 
@@ -671,16 +508,6 @@ var THtmlTerm = function () {
 
         contextMenu = mnuMain;
         */
-    };
-
-    ShowConnectButton = function () {
-        if (!that.Connected()) {
-            Crt.Canvas.style.opacity = 0.4;
-            Crt.HideCursor();
-
-            FConnectButton.Image.addEventListener("click", OnConnectButtonClick, false);
-            FConnectButton.Show();
-        }
     };
 
     ShowSaveFilesButton = function () {
