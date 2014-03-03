@@ -53,26 +53,17 @@ var THtmlTerm = function () {
     var OnAnsiESC6n = function (AEvent) { }; // Do nothing
     var OnAnsiESC255n = function (AEvent) { }; // Do nothing
     var OnAnsiESCQ = function (AEvent) { }; // Do nothing
-    var OnCloseButtonClick = function (me) { }; // Do nothing
     var OnConnectionClose = function (e) { }; // Do nothing
     var OnConnectionConnect = function (e) { }; // Do nothing
     var OnConnectionIOError = function (e) { }; // Do nothing
     var OnConnectionSecurityError = function (see) { }; // Do nothing
     var OnCrtFontChanged = function (e) { }; // Do nothing    
     var OnCrtScreenSizeChanged = function (e) { }; // Do nothing
-    var OnDonateMenuClick = function (cme) { }; // Do nothing
     var OnDownloadComplete = function () { }; // Do nothing
-    var OnHelpMenuClick = function (cme) { }; // Do nothing
-    var OnMaximizeButtonClick = function (me) { }; // Do nothing
-    var OnMinimizeButtonClick = function (me) { }; // Do nothing
     var OnSaveFilesButtonClick = function (me) { }; // Do nothing
     var OnSaveFilesButtonGraphicChanged = function (e) { }; // Do nothing
     var OnTimer = function (e) { }; // Do nothing
     var OnUploadComplete = function (e) { }; // Do nothing
-    var OnUploadListFileLoad = function (e) { }; // Do nothing
-    var OnUploadListFileSelect = function (e) { }; // Do nothing
-    var OnUploadMenuClick = function (cme) { }; // Do nothing
-    var OnWebPageMenuClick = function (cme) { }; // Do nothing
     var ShowSaveFilesButton = function () { }; // Do nothing
 
     this.Init = function (AContainerID) {
@@ -287,13 +278,6 @@ var THtmlTerm = function () {
         Crt.SetFont(AEvent.CodePage, AEvent.Width, AEvent.Height);
     };
 
-    OnCloseButtonClick = function (me) {
-        if (FConnection === null) { return; }
-        if (!FConnection.connected) { return; }
-
-        if (confirm("Are you sure you'd like to disconnect from " + FServerName + "?")) { that.Disconnect(); }
-    };
-
     OnConnectionClose = function (e) {
         // Remove save button (if visible)
         FSaveFilesButton.Image.removeEventListener("click", OnSaveFilesButtonClick, false);
@@ -340,20 +324,12 @@ var THtmlTerm = function () {
         CenterSaveFilesButton();
     };
 
-    OnDonateMenuClick = function (cme) {
-        //TODO
-    };
-
     OnDownloadComplete = function () {
         // Restart listeners for keyboard and connection data
         FTimer = setInterval(OnTimer, 50);
 
         // Display the save button (if files were completed)
         if (FYModemReceive.FileCount > 0) { ShowSaveFilesButton(); }
-    };
-
-    OnHelpMenuClick = function (cme) {
-        //TODO navigateToURL(new URLRequest("http://www.ftelnet.ca/help.php"));
     };
 
     OnSaveFilesButtonClick = function (me) {
@@ -520,6 +496,7 @@ var THtmlTerm = function () {
         FTimer = setInterval(OnTimer, 50);
     };
 
+    // TODO Test if this is still needed
     LoadFile = function (AFile, AFileCount) {
         var reader = new FileReader();
 
@@ -551,10 +528,6 @@ var THtmlTerm = function () {
         for (i = 0; i < AFiles.length; i++) {
             LoadFile(AFiles[i], AFiles.length);
         }
-    };
-
-    OnWebPageMenuClick = function (cme) {
-        //TODO navigateToURL(new URLRequest("http://www.ftelnet.ca/"));
     };
 
     this.__defineGetter__("Port", function () {
