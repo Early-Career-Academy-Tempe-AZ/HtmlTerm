@@ -590,6 +590,9 @@ var TCrt = function () {
     };
 
     OnKeyDown = function (ke) {
+        // Skip out if we've focused an input element
+        if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) return;
+
         if (FInScrollBack) {
             var i;
             var X;
@@ -721,6 +724,9 @@ var TCrt = function () {
     };
 
     OnKeyPress = function (ke) {
+        // Skip out if we've focused an input element
+        if ((ke.target instanceof HTMLInputElement) || (ke.target instanceof HTMLTextAreaElement)) return;
+
         if (FInScrollBack) { return; }
 
         var keyString = "";
@@ -734,10 +740,6 @@ var TCrt = function () {
         }
 
         FKeyBuf.push(new KeyPressEvent(ke, keyString));
-    };
-
-    this.OnKeyFocusChange = function (fe) {
-        fe.preventDefault();
     };
 
     this.PushKeyDown = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
