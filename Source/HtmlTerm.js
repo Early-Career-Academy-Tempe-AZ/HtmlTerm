@@ -107,13 +107,13 @@ var THtmlTerm = function () {
                 Crt.WriteLn("    Safari 5");
                 Crt.WriteLn();
                 Crt.WriteLn("* WebSockets are disabled by default in FireFox 4 and 5.");
-                Crt.WriteLn("  Enable them by changing this setting in \"about:config\":");
+                Crt.WriteLn('  Enable them by changing this setting in "about:config":');
                 Crt.WriteLn("    network.websocket.enabled = true");
                 Crt.WriteLn("    network.websocket.override-security-block = true");
                 Crt.WriteLn("  As of Firefox 6 this change is no longer required");
                 Crt.WriteLn();
                 Crt.WriteLn("** WebSockets are disabled by default in Opera.");
-                Crt.WriteLn("   Enable them by changing this setting in \"opera:config\":");
+                Crt.WriteLn('   Enable them by changing this setting in "opera:config":');
                 Crt.WriteLn("     User Prefs -> Enable WebSockets = checked");
                 trace("HtmlTerm Error: WebSocket not supported");
                 return false;
