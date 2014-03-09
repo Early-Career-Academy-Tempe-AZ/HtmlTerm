@@ -54,12 +54,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CHANGELOG.txt" />
-    <Content Include="FileSaver.js" />
+    <Content Include="Source\Blob.js" />
     <Content Include="Source\client\savefilesbutton\Down.png" />
     <Content Include="Source\client\savefilesbutton\filesave-48.png" />
     <Content Include="Source\client\savefilesbutton\Over.png" />
     <Content Include="Source\client\savefilesbutton\TSaveFilesButton.js" />
     <Content Include="Source\client\savefilesbutton\Up.png" />
+    <Content Include="Source\FileSaver.js" />
     <Content Include="Source\Helper.js" />
     <Content Include="Source\HtmlTerm.js" />
     <Content Include="Source\ImpliedGlobals.js" />

@@ -20,6 +20,8 @@ ECHO // HtmlTerm.js > Release\HtmlTerm.js
 
 TYPE Source\ImpliedGlobals.js >> Release\HtmlTerm.js
 
+TYPE Source\Blob.js >> Release\HtmlTerm.js
+TYPE Source\FileSaver.js >> Release\HtmlTerm.js
 TYPE Source\string-base64.js >> Release\HtmlTerm.js
 
 TYPE Source\randm\actionscript\ByteArray.js >> Release\HtmlTerm.js
@@ -63,7 +65,7 @@ TYPE Source\randm\xfer\TYModemSend.js >> Release\HtmlTerm.js
 
 TYPE Source\HtmlTerm.js >> Release\HtmlTerm.js
 
-Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
+REM Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
 
 COPY Source\randm\crt\font\TFont437.js Release\HtmlTerm.font-437.js
 COPY Source\randm\crt\font\TFontAmiga.js Release\HtmlTerm.font-amiga.js
