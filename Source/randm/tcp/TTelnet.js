@@ -27,14 +27,11 @@ var TTelnet = function () {
     // Private variables
     var that = this;
     var FInputBuffer;
-    var FMode = 'plain';
     var FOutputBuffer;
     var FWasConnected = false;
     var FWebSocket;
 
     // Private methods
-    var decode_message = function (data) { }; // Do nothing
-    var encode_message = function (data) { }; // Do nothing
     var OnSocketClose = function () { }; // Do nothing
     var OnSocketError = function (e) { }; // Do nothing
     var OnSocketOpen = function () { }; // Do nothing
@@ -51,48 +48,11 @@ var TTelnet = function () {
     };
 
     this.connect = function (AHost, APort) {
-        // These support checks are from websockify's websock.js
-        var bt = false;
-        var wsbt = false;
-        var protocols;
+        FWasConnected = false;
+        FWebSocket = new WebSocket("ws://" + AHost + ":" + APort);
 
-        // Check for full typed array support
-        if (('Uint8Array' in window) && ('set' in Uint8Array.prototype)) {
-            bt = true;
-        }
-
-        // Check for full binary type support in WebSockets
-        // TODO: this sucks, the property should exist on the prototype
-        // but it does not.
-        try {
-            if (bt && ('binaryType' in (new WebSocket("ws://localhost:17523")))) {
-                wsbt = true;
-            }
-        } catch (exc) {
-            // Just ignore failed test localhost connections
-        }
-
-        if (wsbt) {
-            protocols = ['binary', 'base64', 'plain'];
-        } else {
-            protocols = ['base64', 'plain'];
-        }
-
-        try {
-            FWasConnected = false;
-            FWebSocket = new WebSocket("ws://" + AHost + ":" + APort, protocols);
-        } catch (ex) {
-            try {
-                FWebSocket = new MozWebSocket("ws://" + AHost + ":" + APort, protocols);
-            } catch (ex2) {
-                that.onsecurityerror();
-                return;
-            }
-        }
-
-        if (protocols.indexOf('binary') >= 0) {
-            FWebSocket.binaryType = 'arraybuffer';
-        }
+        // Enable binary mode
+        FWebSocket.binaryType = 'arraybuffer';
 
         // Set event handlers
         FWebSocket.onclose = OnSocketClose;
@@ -109,50 +69,16 @@ var TTelnet = function () {
         return false;
     });
 
-    decode_message = function (data) {
-        var i;
-        var Result = "";
-
-        if (FMode === 'binary') {
-            var u8 = new Uint8Array(data);
-            for (i = 0; i < u8.length; i++) {
-                Result += String.fromCharCode(u8[i]);
-            }
-        } else if (FMode === 'base64') {
-            var decoded = Base64.decode(data, 0);
-            for (i = 0; i < decoded.length; i++) {
-                Result += String.fromCharCode(decoded[i]);
-            }
-        } else {
-            Result = data;
-        }
-
-        return Result;
-    };
-
-    encode_message = function (data) {
-        var i;
-        var Result = [];
-
-        if (FMode === 'binary') {
-            for (i = 0; i < data.length; i++) {
-                Result.push(data.charCodeAt(i));
-            }
-            return new Uint8Array(Result);
-        } else if (FMode === 'base64') {
-            for (i = 0; i < data.length; i++) {
-                Result.push(data.charCodeAt(i));
-            }
-            return Base64.encode(Result);
-        } else {
-            return data;
-        }
-    };
-
     this.flush = function () {
         // if (DEBUG) trace("flush(): " + FOutputBuffer.toString());
 
-        FWebSocket.send(encode_message(FOutputBuffer.toString()));
+        var ToSendString = FOutputBuffer.toString();
+        var ToSendBytes = [];
+        for (i = 0; i < ToSendString.length; i++) {
+            ToSendBytes.push(ToSendString.charCodeAt(i));
+        }
+
+        FWebSocket.send(new Uint8Array(ToSendBytes));
         FOutputBuffer.clear();
     };
 
@@ -170,12 +96,6 @@ var TTelnet = function () {
     };
 
     OnSocketOpen = function () {
-        if (FWebSocket.protocol) {
-            FMode = FWebSocket.protocol;
-        } else {
-            FMode = 'plain';
-        }
-
         FWasConnected = true;
         that.onconnect();
     };
@@ -189,7 +109,10 @@ var TTelnet = function () {
         FInputBuffer.position = FInputBuffer.length;
 
         // Write the incoming message to the input buffer
-        FInputBuffer.writeString(decode_message(e.data));
+        var u8 = new Uint8Array(e.data);
+        for (var i = 0; i < u8.length; i++) {
+            FInputBuffer.writeByte(u8[i]);
+        }
 
         // Restore the old buffer position
         FInputBuffer.position = OldPosition;
@@ -254,6 +177,24 @@ var TTelnet = function () {
 
     this.readUTFBytes = function (ALength) {
         return FInputBuffer.readUTFBytes(ALength);
+    };
+
+    this.test = function () {
+        // Check for full typed array support
+        if (('Uint8Array' in window) && ('set' in Uint8Array.prototype)) {
+            // Check for full binary type support in WebSockets
+            // TODO: this sucks, the property should exist on the prototype
+            // but it does not.
+            try {
+                if ('binaryType' in (new WebSocket("ws://localhost:53211"))) {
+                    return true;
+                }
+            } catch (exc) {
+                // Just ignore failed test localhost connections
+            }
+        }
+
+        return false;
     };
 
     // Remap all the write* functions to operate on our output buffer instead
