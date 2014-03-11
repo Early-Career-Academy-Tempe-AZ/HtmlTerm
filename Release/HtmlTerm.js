@@ -4717,6 +4717,8 @@ var TTelnet = function () {
     };
 
     this.test = function () {
+        // This test comes from Websockify
+
         // Check for full typed array support
         if (('Uint8Array' in window) && ('set' in Uint8Array.prototype)) {
             // Check for full binary type support in WebSockets
