@@ -22,7 +22,6 @@ TYPE Source\ImpliedGlobals.js >> Release\HtmlTerm.js
 
 TYPE Source\Blob.js >> Release\HtmlTerm.js
 TYPE Source\FileSaver.js >> Release\HtmlTerm.js
-TYPE Source\string-base64.js >> Release\HtmlTerm.js
 
 TYPE Source\randm\actionscript\ByteArray.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\FileReference.js >> Release\HtmlTerm.js
@@ -56,7 +55,7 @@ TYPE Source\randm\ansi\AnsiParserState.js >> Release\HtmlTerm.js
 TYPE Source\randm\ansi\ESCQEvent.js >> Release\HtmlTerm.js
 TYPE Source\randm\ansi\Ansi.js >> Release\HtmlTerm.js
 
-TYPE Source\randm\tcp\TTelnet.js >> Release\HtmlTerm.js
+TYPE Source\randm\tcp\TTcpConnection.js >> Release\HtmlTerm.js
 
 TYPE Source\randm\xfer\CRC.js >> Release\HtmlTerm.js
 TYPE Source\randm\xfer\TFileRecord.js >> Release\HtmlTerm.js

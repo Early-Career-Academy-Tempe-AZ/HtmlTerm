@@ -93,7 +93,7 @@ var THtmlTerm = function () {
             Crt.Canvas.addEventListener(Crt.SCREEN_SIZE_CHANGED, OnCrtScreenSizeChanged, false);
 
             // Test websocket support
-            var TempConnection = new TTelnet();
+            var TempConnection = new TTcpConnection();
             if (!TempConnection.test()) {
                 Crt.WriteLn("Sorry, your browser doesn't have full WebSocket support!");
                 Crt.WriteLn();
@@ -160,7 +160,7 @@ var THtmlTerm = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
 
         // Create new connection
-        FConnection = new TTelnet();
+        FConnection = new TTcpConnection();
         FConnection.onclose = OnConnectionClose;
         FConnection.onconnect = OnConnectionConnect;
         FConnection.onioerror = OnConnectionIOError;

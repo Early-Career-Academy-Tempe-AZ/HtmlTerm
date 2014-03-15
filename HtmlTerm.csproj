@@ -87,7 +87,7 @@
     <Content Include="Source\randm\crt\TCrtLabel.js" />
     <Content Include="Source\randm\crt\TCrtPanel.js" />
     <Content Include="Source\randm\crt\TCrtProgressBar.js" />
-    <Content Include="Source\randm\tcp\TTelnet.js" />
+    <Content Include="Source\randm\tcp\TTcpConnection.js" />
     <Content Include="Source\randm\xfer\CRC.js" />
     <Content Include="Source\randm\xfer\TFileRecord.js" />
     <Content Include="Source\randm\xfer\TYModemReceive.js" />
@@ -102,6 +102,13 @@
     <Content Include="Source\randm\crt\font\TFont.js" />
     <Content Include="Source\StringUtils.js" />
     <Content Include="web.config" />
+    <Content Include="Source\randm\tcp\rlogin\RLoginCommand.as" />
+    <Content Include="Source\randm\tcp\rlogin\RLoginNegotiationState.as" />
+    <Content Include="Source\randm\tcp\rlogin\TRLoginConnection.as" />
+    <Content Include="Source\randm\tcp\telnet\TelnetCommand.as" />
+    <Content Include="Source\randm\tcp\telnet\TelnetNegotiationState.as" />
+    <Content Include="Source\randm\tcp\telnet\TelnetOption.as" />
+    <Content Include="Source\randm\tcp\telnet\TTelnetConnection.as" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

@@ -17,7 +17,7 @@
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var TTelnet = function () {
+var TTcpConnection = function () {
     // Public events
     this.onclose = function () { }; // Do nothing
     this.onconnect = function () { }; // Do nothing
@@ -261,3 +261,6 @@ var TTelnet = function () {
     FInputBuffer = new ByteArray();
     FOutputBuffer = new ByteArray();
 };
+
+var TTcpConnectionSurrogate = function () { };
+TTcpConnectionSurrogate.prototype = TTcpConnection.prototype;
