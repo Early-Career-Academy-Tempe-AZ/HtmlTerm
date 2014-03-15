@@ -109,9 +109,13 @@ var TTelnet = function () {
         FInputBuffer.position = FInputBuffer.length;
 
         // Write the incoming message to the input buffer
-        var u8 = new Uint8Array(e.data);
-        for (var i = 0; i < u8.length; i++) {
-            FInputBuffer.writeByte(u8[i]);
+        if (e.data instanceof ArrayBuffer) {
+            var u8 = new Uint8Array(e.data);
+            for (var i = 0; i < u8.length; i++) {
+                FInputBuffer.writeByte(u8[i]);
+            }
+        } else {
+            FInputBuffer.writeString(e.data);
         }
 
         // Restore the old buffer position
