@@ -105,10 +105,10 @@
     <Content Include="Source\randm\tcp\rlogin\RLoginCommand.as" />
     <Content Include="Source\randm\tcp\rlogin\RLoginNegotiationState.as" />
     <Content Include="Source\randm\tcp\rlogin\TRLoginConnection.as" />
-    <Content Include="Source\randm\tcp\telnet\TelnetCommand.as" />
-    <Content Include="Source\randm\tcp\telnet\TelnetNegotiationState.as" />
-    <Content Include="Source\randm\tcp\telnet\TelnetOption.as" />
-    <Content Include="Source\randm\tcp\telnet\TTelnetConnection.as" />
+    <Content Include="Source\randm\tcp\telnet\TelnetCommand.js" />
+    <Content Include="Source\randm\tcp\telnet\TelnetNegotiationState.js" />
+    <Content Include="Source\randm\tcp\telnet\TelnetOption.js" />
+    <Content Include="Source\randm\tcp\telnet\TTelnetConnection.js" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

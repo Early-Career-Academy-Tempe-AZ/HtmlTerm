@@ -26,10 +26,12 @@ var TTcpConnection = function () {
 
     // Private variables
     var that = this;
-    var FInputBuffer;
-    var FOutputBuffer;
     var FWasConnected = false;
-    var FWebSocket;
+
+    // Protected variables
+    this.FInputBuffer = null;
+    this.FOutputBuffer;
+    this.FWebSocket = null;
 
     // Private methods
     var OnSocketClose = function () { }; // Do nothing
@@ -69,19 +71,6 @@ var TTcpConnection = function () {
         return false;
     });
 
-    this.flush = function () {
-        // if (DEBUG) trace("flush(): " + FOutputBuffer.toString());
-
-        var ToSendString = FOutputBuffer.toString();
-        var ToSendBytes = [];
-        for (i = 0; i < ToSendString.length; i++) {
-            ToSendBytes.push(ToSendString.charCodeAt(i));
-        }
-
-        FWebSocket.send(new Uint8Array(ToSendBytes));
-        FOutputBuffer.clear();
-    };
-
     OnSocketClose = function () {
         if (FWasConnected) {
             that.onclose();
@@ -108,15 +97,20 @@ var TTcpConnection = function () {
         var OldPosition = FInputBuffer.position;
         FInputBuffer.position = FInputBuffer.length;
 
+        var Data = new ByteArray();
+
         // Write the incoming message to the input buffer
         if (e.data instanceof ArrayBuffer) {
             var u8 = new Uint8Array(e.data);
             for (var i = 0; i < u8.length; i++) {
-                FInputBuffer.writeByte(u8[i]);
+                Data.writeByte(u8[i]);
             }
         } else {
-            FInputBuffer.writeString(e.data);
+            Data.writeString(e.data);
         }
+        Data.position = 0;
+
+        NegotiateInbound(Data);
 
         // Restore the old buffer position
         FInputBuffer.position = OldPosition;

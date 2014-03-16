@@ -160,7 +160,7 @@ var THtmlTerm = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
 
         // Create new connection
-        FConnection = new TTcpConnection();
+        FConnection = new TTelnetConnection(); // TODO Could be TRLoginConnection
         FConnection.onclose = OnConnectionClose;
         FConnection.onconnect = OnConnectionConnect;
         FConnection.onioerror = OnConnectionIOError;
