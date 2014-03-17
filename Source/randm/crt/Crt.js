@@ -1743,6 +1743,7 @@ var TCrt = function () {
                 // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction with this Carriage return character in the PETSCII system. 
                 X = 1;
                 Y += 1;
+                FCharInfo.Reversed = false;
                 DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x0E) {
@@ -1774,8 +1775,8 @@ var TCrt = function () {
                         X -= 1;
                     }
 
-                    that.DelChar();
-                    DoGoto = true;
+                    that.GotoXY(X, Y);
+                    that.DelChar(1);
                 }
             }
             else if (AText.charCodeAt(i) === 0x1C) {
@@ -1831,7 +1832,8 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x94) {
                 // Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
-                that.InsChar(" ");
+                that.GotoXY(X, Y);
+                that.InsChar(1);
             }
             else if (AText.charCodeAt(i) === 0x95) {
                 // Changes the text color to brown. 
