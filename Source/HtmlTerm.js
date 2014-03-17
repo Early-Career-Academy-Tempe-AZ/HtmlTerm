@@ -88,7 +88,7 @@ var THtmlTerm = function () {
             Crt.Blink = FBlink;
             Crt.SetFont(FCodePage, FFontWidth, FFontHeight);
             Crt.SetScreenSize(FScreenColumns, FScreenRows);
-            Crt.Window(1, 1, 80, FScreenRows - 1);
+            Crt.Window(1, 1, FScreenColumns, FScreenRows - 1);
             Crt.FastWrite(" Not connected                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
             Crt.Canvas.addEventListener(Crt.SCREEN_SIZE_CHANGED, OnCrtScreenSizeChanged, false);
 
