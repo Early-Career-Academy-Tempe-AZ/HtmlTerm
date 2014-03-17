@@ -122,7 +122,7 @@ var TCrt = function () {
         // FCanvas
         FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
         // FCursor
-        FFlushBeforeWritePETSCII = [0x05, 0x08, 0x09, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
+        FFlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
         FFont = new TFont();
         FFont.onchange = OnFontChanged;
         FInScrollBack = false;
@@ -1677,6 +1677,10 @@ var TCrt = function () {
                 // Changes the text color to white. 
                 that.TextColor(that.PETSCII_WHITE);
             }
+            else if (AText.charCodeAt(i) === 0x07) {
+                // Beep (extra, not documented)
+                that.Beep();
+            }
             else if (AText.charCodeAt(i) === 0x08) {
                 // TODO Disables changing the character set using the SHIFT + Commodore key combination. 
                 trace("PETSCII 0x08");
@@ -1694,15 +1698,12 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x0E) {
                 // Select the lowercase/uppercase character set. 
-                that.SetFont("PETSCII-Lower", FFont.Width, FFont.Height);
+                that.SetFont("PETSCII-Lower", 16, 16);
             }
             else if (AText.charCodeAt(i) === 0x11) {
                 // Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
-                // TODO Wrap at bottom edge of screen?
-                if (Y < that.WindRows) {
-                    Y += 1;
-                    DoGoto = true;
-                }
+                Y += 1;
+                DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x12) {
                 // Reverse on: Selects reverse video text. 
@@ -1716,10 +1717,15 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x14) {
                 // Delete, or "backspace"; erases the previous character and moves the cursor one character position to the left. 
-                // TODO Should be destructive
-                // TODO Wrap if at left edge of screen?
-                if (X > 1) {
-                    X -= 1;
+                if ((X > 1) || (Y > 1)) {
+                    if (X === 1) {
+                        X = that.WindCols;
+                        Y -= 1;
+                    } else {
+                        X -= 1;
+                    }
+
+                    that.DelChar();
                     DoGoto = true;
                 }
             }
@@ -1729,11 +1735,13 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x1D) {
                 // Advances the cursor one character position without printing anything. 
-                // TODO Wrap if at right edge of screen?
-                if (X < that.WindCols) {
+                if (X === that.WindCols) {
+                    X = 1;
+                    Y += 1;
+                } else {
                     X += 1;
-                    DoGoto = true;
                 }
+                DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x1E) {
                 // Changes the text color to green. 
@@ -1749,7 +1757,7 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x8E) {
                 // Select the uppercase/semigraphics character set. 
-                that.SetFont("PETSCII-Upper", FFont.Width, FFont.Height);
+                that.SetFont("PETSCII-Upper", 16, 16);
             }
             else if (AText.charCodeAt(i) === 0x90) {
                 // Changes the text color to black. 
@@ -1757,7 +1765,6 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x91) {
                 // Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
-                // TODO Wrap at top edge of screen?
                 if (Y > 1) {
                     Y -= 1;
                     DoGoto = true;
@@ -1769,14 +1776,12 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x93) {
                 // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
-                // TODO Reset text attr?
                 that.ClrScr();
                 X = 1;
                 Y = 1;
             }
             else if (AText.charCodeAt(i) === 0x94) {
                 // Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
-                // TODO With a specific attr?
                 that.InsChar(" ");
             }
             else if (AText.charCodeAt(i) === 0x95) {
@@ -1813,9 +1818,13 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x9D) {
                 // Moves the cursor one character position backwards, without printing or deleting anything. 
-                // TODO Wrap if at left edge of screen?
-                if (X > 1) {
-                    X -= 1;
+                if ((X > 1) || (Y > 1)) {
+                    if (X === 1) {
+                        X = that.WindCols;
+                        Y -= 1;
+                    } else {
+                        X -= 1;
+                    }
                     DoGoto = true;
                 }
             }
@@ -1832,7 +1841,6 @@ var TCrt = function () {
                 Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
 
                 // Check if we've passed the right edge of the window
-                // TODO Auto wrap?
                 if ((X + Buf.length) > that.WindCols) {
                     // We have, need to flush buffer before moving cursor
                     that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
