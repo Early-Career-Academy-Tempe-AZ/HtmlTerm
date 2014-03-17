@@ -47,6 +47,23 @@ var TCrt = function () {
     this.WHITE = 15;
     this.BLINK = 128;
 
+    this.PETSCII_BLACK = 0;
+    this.PETSCII_WHITE = 1;
+    this.PETSCII_RED = 2;
+    this.PETSCII_CYAN = 3;
+    this.PETSCII_PURPLE = 4;
+    this.PETSCII_GREEN = 5;
+    this.PETSCII_BLUE = 6;
+    this.PETSCII_YELLOW = 7;
+    this.PETSCII_ORANGE = 8;
+    this.PETSCII_BROWN = 9;
+    this.PETSCII_LIGHTRED = 10;
+    this.PETSCII_DARKGRAY = 11;
+    this.PETSCII_GRAY = 12;
+    this.PETSCII_LIGHTGREEN = 13;
+    this.PETSCII_LIGHTBLUE = 14;
+    this.PETSCII_LIGHTGRAY = 15;
+
     /* Private variables */
     var that = this;
     var FAtari;
@@ -60,6 +77,7 @@ var TCrt = function () {
     var FCharInfo;
     var FContext;
     var FCursor;
+    var FFlushBeforeWritePETSCII;
     var FFont;
     var FInScrollBack;
     var FKeyBuf;
@@ -104,6 +122,7 @@ var TCrt = function () {
         // FCanvas
         FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
         // FCursor
+        FFlushBeforeWritePETSCII = [0x05, 0x08, 0x09, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
         FFont = new TFont();
         FFont.onchange = OnFontChanged;
         FInScrollBack = false;
@@ -139,7 +158,7 @@ var TCrt = function () {
         InitBuffers(true);
 
         // Create the cursor
-        FCursor = new TCursor(AParent, FFont.HTML_COLOURS[that.LIGHTGRAY], FFont.Size);
+        FCursor = new TCursor(AParent, FFont.ANSI_COLOURS[that.LIGHTGRAY], FFont.Size);
         FCursor.onhide = OnBlinkHide;
         FCursor.onshow = OnBlinkShow;
 
@@ -880,7 +899,7 @@ var TCrt = function () {
         }
 
         // Blank -- TODO Hasn't been tested yet
-        FContext.fillStyle = FFont.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+        FContext.fillStyle = FFont.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
         Left = (AX1 - 1) * FFont.Width;
         Top = (AY1 - 1) * FFont.Height;
         Width = (AX2 - AX1 + 1) * FFont.Width;
@@ -967,7 +986,7 @@ var TCrt = function () {
             }
 
             // Blank
-            FContext.fillStyle = FFont.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+            FContext.fillStyle = FFont.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
             Left = (AX1 - 1) * FFont.Width;
             Top = (AY2 - ALines) * FFont.Height;
             Width = (AX2 - AX1 + 1) * FFont.Width;
@@ -1642,21 +1661,21 @@ var TCrt = function () {
         for (i = 0; i < AText.length; i++) {
             var DoGoto = false;
 
+            // Check if this is a control code (so we need to flush buffered text first)
+            if ((Buf !== "") && (FFlushBeforeWritePETSCII.indexOf(AText.charCodeAt(i)) !== -1)) {
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+            }
+
             if (AText.charCodeAt(i) === 0x00) {
                 // NULL, ignore
                 i += 0; // Make JSLint happy (doesn't like empty block)
             }
             else if (AText.charCodeAt(i) === 0x05) {
-                // Change text colour to white, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.WHITE);
-            }
-            else if (AText.charCodeAt(i) === 0x07) {
-                that.Beep();
+                // Changes the text color to white. 
+                that.TextColor(that.PETSCII_WHITE);
             }
             else if (AText.charCodeAt(i) === 0x08) {
                 // TODO Disables changing the character set using the SHIFT + Commodore key combination. 
@@ -1666,236 +1685,154 @@ var TCrt = function () {
                 // TODO Enables changing the character set using the SHIFT + Commodore key combination. 
                 trace("PETSCII 0x09");
             }
-            else if (AText.charCodeAt(i) === 0x0A) {
-                // Line feed, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                Y += 1;
-                DoGoto = true;
-
-                Buf = "";
-            }
-                //else if (AText.charCodeAt(i) === 0x0C) {
-                //    // Clear the screen
-                //    that.ClrScr();
-
-                //    // Reset the variables
-                //    X = 1;
-                //    Y = 1;
-                //    Buf = "";
-                //}
             else if ((AText.charCodeAt(i) === 0x0D) || (AText.charCodeAt(i) === 0x8D)) {
-                // Carriage return (which is also a line feed with PETSCII), need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                // Carriage return; next character will go in the first column of the following text line. 
+                // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction with this Carriage return character in the PETSCII system. 
                 X = 1;
                 Y += 1;
                 DoGoto = true;
-
-                Buf = "";
             }
             else if (AText.charCodeAt(i) === 0x0E) {
-                // TODO Select the lowercase/uppercase character set. 
-                trace("PETSCII 0x0E");
+                // Select the lowercase/uppercase character set. 
+                that.SetFont("PETSCII-Lower", FFont.Width, FFont.Height);
             }
             else if (AText.charCodeAt(i) === 0x11) {
-                // TODO  Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
-                trace("PETSCII 0x11");
+                // Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
+                // TODO Wrap at bottom edge of screen?
+                if (Y < that.WindRows) {
+                    Y += 1;
+                    DoGoto = true;
+                }
             }
             else if (AText.charCodeAt(i) === 0x12) {
-                // Reverse video on, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
+                // Reverse on: Selects reverse video text. 
                 FCharInfo.Reversed = true;
             }
             else if (AText.charCodeAt(i) === 0x13) {
-                // TODO Home: Next character will be printed in the upper left-hand corner of the screen. 
-                trace("PETSCII 0x13");
+                // Home: Next character will be printed in the upper left-hand corner of the screen. 
+                X = 1;
+                Y = 1;
+                DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x14) {
-                // TODO Delete, or "backspace"; erases the previous character and moves the cursor one character position to the left. 
-                trace("PETSCII 0x14");
+                // Delete, or "backspace"; erases the previous character and moves the cursor one character position to the left. 
+                // TODO Should be destructive
+                // TODO Wrap if at left edge of screen?
+                if (X > 1) {
+                    X -= 1;
+                    DoGoto = true;
+                }
             }
             else if (AText.charCodeAt(i) === 0x1C) {
-                // Change text colour to red, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.RED);
+                // Changes the text color to red. 
+                that.TextColor(that.PETSCII_RED);
             }
             else if (AText.charCodeAt(i) === 0x1D) {
-                // TODO Advances the cursor one character position without printing anything. 
-                trace("PETSCII 0x1D");
+                // Advances the cursor one character position without printing anything. 
+                // TODO Wrap if at right edge of screen?
+                if (X < that.WindCols) {
+                    X += 1;
+                    DoGoto = true;
+                }
             }
             else if (AText.charCodeAt(i) === 0x1E) {
-                // Change text colour to green, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.GREEN);
+                // Changes the text color to green. 
+                that.TextColor(that.PETSCII_GREEN);
             }
             else if (AText.charCodeAt(i) === 0x1F) {
-                // Change text colour to blue, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.BLUE);
+                // Changes the text color to blue. 
+                that.TextColor(that.PETSCII_BLUE);
             }
             else if (AText.charCodeAt(i) === 0x81) {
-                // Change text colour to orange, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.BROWN); // TODO Orange
+                // Changes the text color to orange. 
+                that.TextColor(that.PETSCII_ORANGE);
             }
             else if (AText.charCodeAt(i) === 0x8E) {
-                // TODO Select the uppercase/semigraphics character set. 
-                trace("PETSCII 0x8E");
+                // Select the uppercase/semigraphics character set. 
+                that.SetFont("PETSCII-Upper", FFont.Width, FFont.Height);
             }
             else if (AText.charCodeAt(i) === 0x90) {
-                // Change text colour to black, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.BLACK);
+                // Changes the text color to black. 
+                that.TextColor(that.PETSCII_BLACK);
             }
             else if (AText.charCodeAt(i) === 0x91) {
-                // TODO Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
-                trace("PETSCII 0x91");
+                // Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
+                // TODO Wrap at top edge of screen?
+                if (Y > 1) {
+                    Y -= 1;
+                    DoGoto = true;
+                }
             }
             else if (AText.charCodeAt(i) === 0x92) {
-                // Reverse video off, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
+                // Reverse off: De-selects reverse video text. 
                 FCharInfo.Reversed = false;
             }
             else if (AText.charCodeAt(i) === 0x93) {
-                // TODO Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
-                trace("PETSCII 0x93");
+                // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
+                // TODO Reset text attr?
+                that.ClrScr();
+                X = 1;
+                Y = 1;
             }
             else if (AText.charCodeAt(i) === 0x94) {
-                // TODO Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
-                trace("PETSCII 0x94");
+                // Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
+                // TODO With a specific attr?
+                that.InsChar(" ");
             }
             else if (AText.charCodeAt(i) === 0x95) {
-                // Change text colour to brown, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.BROWN);
+                // Changes the text color to brown. 
+                that.TextColor(that.PETSCII_BROWN);
             }
             else if (AText.charCodeAt(i) === 0x96) {
-                // Change text colour to light red, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.LIGHTRED);
+                // Changes the text color to light red.
+                that.TextColor(that.PETSCII_LIGHTRED);
             }
             else if (AText.charCodeAt(i) === 0x97) {
-                // Change text colour to dark gray, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.DARKGRAY);
+                // Changes the text color to dark gray. 
+                that.TextColor(that.PETSCII_DARKGRAY);
             }
             else if (AText.charCodeAt(i) === 0x98) {
-                // Change text colour to medium gray, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.LIGHTGRAY); // TODO
+                // Changes the text color to gray. 
+                that.TextColor(that.PETSCII_GRAY);
             }
             else if (AText.charCodeAt(i) === 0x99) {
-                // Change text colour to light green, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.LIGHTGREEN);
+                // Changes the text color to light green. 
+                that.TextColor(that.PETSCII_LIGHTGREEN);
             }
             else if (AText.charCodeAt(i) === 0x9A) {
-                // Change text colour to light blue, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.LIGHTBLUE);
+                // Changes the text color to light blue. 
+                that.TextColor(that.PETSCII_LIGHTBLUE);
             }
             else if (AText.charCodeAt(i) === 0x9B) {
-                // Change text colour to light gray, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.LIGHTGRAY);
+                // Changes the text color to light gray. 
+                that.TextColor(that.PETSCII_LIGHTGRAY);
             }
             else if (AText.charCodeAt(i) === 0x9C) {
-                // Change text colour to purple, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.MAGENTA);
+                // Changes the text color to purple. 
+                that.TextColor(that.PETSCII_PURPLE);
             }
             else if (AText.charCodeAt(i) === 0x9D) {
-                // Move cursor left (non destructive), need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                if (X > 1) { X -= 1; } // TODO Wrap if at left edge of screen?
-                DoGoto = true;
-
-                Buf = "";
+                // Moves the cursor one character position backwards, without printing or deleting anything. 
+                // TODO Wrap if at left edge of screen?
+                if (X > 1) {
+                    X -= 1;
+                    DoGoto = true;
+                }
             }
             else if (AText.charCodeAt(i) === 0x9E) {
-                // Change text colour to yellow, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.YELLOW);
+                // Changes the text color to yellow. 
+                that.TextColor(that.PETSCII_YELLOW);
             }
             else if (AText.charCodeAt(i) === 0x9F) {
-                // Change text colour to cyan, need to flush buffer before moving cursor
-                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
-                X += Buf.length;
-                DoGoto = true;
-                Buf = "";
-
-                that.TextColor(that.CYAN);
+                // Changes the text color to cyan. 
+                that.TextColor(that.PETSCII_CYAN);
             }
             else if (AText.charCodeAt(i) !== 0) {
                 // Append character to buffer
                 Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
 
                 // Check if we've passed the right edge of the window
+                // TODO Auto wrap?
                 if ((X + Buf.length) > that.WindCols) {
                     // We have, need to flush buffer before moving cursor
                     that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);

@@ -27,9 +27,29 @@ var TFont = function () {
     this.onchange = function () { }; // Do nothing
 
     // Public variables
-    this.HTML_COLOURS = [
+    this.ANSI_COLOURS = [
 		"#000000", "#0000A8", "#00A800", "#00A8A8", "#A80000", "#A800A8", "#A85400", "#A8A8A8",
 		"#545454", "#5454FC", "#54FC54", "#54FCFC", "#FC5454", "#FC54FC", "#FCFC54", "#FCFCFC"];
+
+    // From http://www.c64-wiki.com/index.php/Color
+    //this.PETSCII_COLOURS = [
+    //    "#000000", "#ffffff", "#880000", "#aaffee", "#cc44cc", "#00cc55", "#0000aa", "#eeee77",
+    //    "#dd8855", "#664400", "#ff7777", "#333333", "#777777", "#aaff66", "#0088ff", "#bbbbbb"];
+
+    // From http://www.pepto.de/projects/colorvic/
+    //this.PETSCII_COLOURS = [
+    //    "#000000", "#ffffff", "#68372B", "#70A4B2", "#6F3D86", "#588D43", "#352879", "#B8C76F",
+    //    "#6F4F25", "#433900", "#9A6759", "#444444", "#6C6C6C", "#9AD284", "#6C5EB5", "#959595"];
+
+    // From http://en.wikipedia.org/wiki/File:C64_ntsc_cxa2025.bmp.png
+    //this.PETSCII_COLOURS = [
+    //    "#000000", "#ffffff", "#FA3200", "#1DE0FF", "#A84BCC", "#68BB50", "#004AD0", "#FFEB45",
+    //    "#FF5B00", "#C23D00", "#FF7142", "#FF7142", "#8A9578", "#B3FF97", "#4788FF", "#C3B8D7"];
+
+    // From CGterm
+    this.PETSCII_COLOURS = [
+        "#000000", "#FDFEFC", "#BE1A24", "#30E6C6", "#B41AE2", "#1FD21E", "#211BAE", "#DFF60A",
+        "#B84104", "#6A3304", "#FE4A57", "#424540", "#70746F", "#59FE59", "#5F53FE", "#A4A7A2"];
 
     // Private variables
     var that = this;
@@ -68,12 +88,22 @@ var TFont = function () {
             // Now colour the character (if necessary -- If attr 15 is requested, we already have it since the image is white on black!)
             if ((ACharInfo.Attr !== 15) || (ACharInfo.Reversed)) {
                 // Get the text colour
-                if (ACharInfo.Reversed) {
-                    var Fore = that.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                    var Back = that.HTML_COLOURS[(ACharInfo.Attr & 0x0F)];
+                if (FCodePage.indexOf("PETSCII") === 0) {
+                    if (ACharInfo.Reversed) {
+                        var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                        var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
+                    } else {
+                        var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                        var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
+                    }
                 } else {
-                    var Back = that.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                    var Fore = that.HTML_COLOURS[(ACharInfo.Attr & 0x0F)];
+                    if (ACharInfo.Reversed) {
+                        var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                        var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
+                    } else {
+                        var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                        var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
+                    }
                 }
 
                 // Get the individual RGB colours
@@ -120,8 +150,8 @@ var TFont = function () {
     this.Load = function (ACodePage, AWidth, AHeight) {
         // Ensure the requested font exists
         if (CrtFonts[ACodePage + "x" + AWidth + "x" + AHeight] !== undefined) {
-            that.HTML_COLOURS[7] = "#A8A8A8";
-            that.HTML_COLOURS[0] = "#000000";
+            that.ANSI_COLOURS[7] = "#A8A8A8";
+            that.ANSI_COLOURS[0] = "#000000";
 
             FLoading += 1;
             FNewCodePage = ACodePage;
@@ -133,8 +163,8 @@ var TFont = function () {
 
                 // Override colour for ATASCII clients
                 if (ACodePage.indexOf("ATASCII") === 0) {
-                    that.HTML_COLOURS[7] = "#63B6E7";
-                    that.HTML_COLOURS[0] = "#005184";
+                    that.ANSI_COLOURS[7] = "#63B6E7";
+                    that.ANSI_COLOURS[0] = "#005184";
                 }
 
                 FLower = new Image();
