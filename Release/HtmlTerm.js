@@ -1714,7 +1714,7 @@ var TCrt = function () {
         // FCanvas
         FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
         // FCursor
-        FFlushBeforeWritePETSCII = [0x05, 0x08, 0x09, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
+        FFlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
         FFont = new TFont();
         FFont.onchange = OnFontChanged;
         FInScrollBack = false;
@@ -2280,70 +2280,100 @@ var TCrt = function () {
 
         var keyString = "";
 
-        if (ke.ctrlKey) {
-            // Handle control + letter keys
-            if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
-                if (FAtari) {
+        if (FAtari) {
+            if (ke.ctrlKey) {
+                if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
                     switch (ke.keyCode) {
                         case 72: keyString = String.fromCharCode(126); break; // CTRL-H
                         case 74: keyString = String.fromCharCode(13); break; // CTRL-J
                         case 77: keyString = String.fromCharCode(155); break; // CTRL-M
                         default: keyString = String.fromCharCode(ke.keyCode - 64); break;
                     }
-                } else {
-                    keyString = String.fromCharCode(ke.keyCode - 64);
                 }
-            }
-            else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
-                if (FAtari) {
+                else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
                     switch (ke.keyCode) {
                         case 104: keyString = String.fromCharCode(126); break; // CTRL-H
                         case 106: keyString = String.fromCharCode(13); break; // CTRL-J
                         case 109: keyString = String.fromCharCode(155); break; // CTRL-M
                         default: keyString = String.fromCharCode(ke.keyCode - 96); break;
                     }
-                } else {
-                    keyString = String.fromCharCode(ke.keyCode - 96);
+                }
+            } else {
+                switch (ke.keyCode) {
+                    // Handle special keys                                                                                                  
+                    case Keyboard.BACKSPACE: keyString = "\x7E"; break;
+                    case Keyboard.DELETE: keyString = "\x7E"; break;
+                    case Keyboard.DOWN: keyString = "\x1D"; break;
+                    case Keyboard.ENTER: keyString = "\x9B"; break;
+                    case Keyboard.LEFT: keyString = "\x1E"; break;
+                    case Keyboard.RIGHT: keyString = "\x1F"; break;
+                    case Keyboard.SPACE: keyString = " "; break;
+                    case Keyboard.TAB: keyString = "\x7F"; break;
+                    case Keyboard.UP: keyString = "\x1C"; break;
                 }
             }
-        } else {
+        } else if (FC64) {
             switch (ke.keyCode) {
                 // Handle special keys                                                                                                  
-                case Keyboard.BACKSPACE:
-                    if (FAtari) {
-                        keyString = String.fromCharCode(0x7E);
-                    } else if (FC64) {
-                        keyString = String.fromCharCode(0x14);
-                    } else {
-                        keyString = String.fromCharCode(ke.keyCode);
-                    }
-                    break;
-                case Keyboard.DELETE: keyString = "\x7F"; break;
-                case Keyboard.DOWN: keyString = "\x1B[B"; break;
-                case Keyboard.END: keyString = "\x1B[K"; break;
-                case Keyboard.ENTER: keyString = (FAtari) ? "\x9B" : "\r\n"; break;
-                case Keyboard.ESCAPE: keyString = "\x1B"; break;
-                case Keyboard.F1: keyString = "\x1BOP"; break;
-                case Keyboard.F2: keyString = "\x1BOQ"; break;
-                case Keyboard.F3: keyString = "\x1BOR"; break;
-                case Keyboard.F4: keyString = "\x1BOS"; break;
-                case Keyboard.F5: keyString = "\x1BOt"; break;
-                case Keyboard.F6: keyString = "\x1B[17~"; break;
-                case Keyboard.F7: keyString = "\x1B[18~"; break;
-                case Keyboard.F8: keyString = "\x1B[19~"; break;
-                case Keyboard.F9: keyString = "\x1B[20~"; break;
-                case Keyboard.F10: keyString = "\x1B[21~"; break;
-                case Keyboard.F11: keyString = "\x1B[23~"; break;
-                case Keyboard.F12: keyString = "\x1B[24~"; break;
-                case Keyboard.HOME: keyString = "\x1B[H"; break;
-                case Keyboard.INSERT: keyString = "\x1B@"; break;
-                case Keyboard.LEFT: keyString = "\x1B[D"; break;
-                case Keyboard.PAGE_DOWN: keyString = "\x1B[U"; break;
-                case Keyboard.PAGE_UP: keyString = "\x1B[V"; break;
-                case Keyboard.RIGHT: keyString = "\x1B[C"; break;
+                case Keyboard.BACKSPACE: keyString = "\x14"; break;
+                case Keyboard.DELETE: keyString = "\x14"; break;
+                case Keyboard.DOWN: keyString = "\x11"; break;
+                case Keyboard.ENTER: keyString = "\r"; break;
+                case Keyboard.F1: keyString = "\x85"; break;
+                case Keyboard.F2: keyString = "\x89"; break;
+                case Keyboard.F3: keyString = "\x86"; break;
+                case Keyboard.F4: keyString = "\x8A"; break;
+                case Keyboard.F5: keyString = "\x87"; break;
+                case Keyboard.F6: keyString = "\x8B"; break;
+                case Keyboard.F7: keyString = "\x88"; break;
+                case Keyboard.F8: keyString = "\x8C"; break;
+                case Keyboard.HOME: keyString = "\x13"; break;
+                case Keyboard.INSERT: keyString = "\x94"; break;
+                case Keyboard.LEFT: keyString = "\x9D"; break;
+                case Keyboard.RIGHT: keyString = "\x1D"; break;
                 case Keyboard.SPACE: keyString = " "; break;
-                case Keyboard.TAB: keyString = (FAtari) ? "\x7F" : String.fromCharCode(ke.keyCode); break;
-                case Keyboard.UP: keyString = "\x1B[A"; break;
+                case Keyboard.UP: keyString = "\x91"; break;
+            }
+        } else {
+            if (ke.ctrlKey) {
+                // Handle control + letter keys
+                if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
+                    keyString = String.fromCharCode(ke.keyCode - 64);
+                }
+                else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
+                    keyString = String.fromCharCode(ke.keyCode - 96);
+                }
+            } else {
+                switch (ke.keyCode) {
+                    // Handle special keys                                                                                                  
+                    case Keyboard.BACKSPACE: keyString = "\b"; break;
+                    case Keyboard.DELETE: keyString = "\x7F"; break;
+                    case Keyboard.DOWN: keyString = "\x1B[B"; break;
+                    case Keyboard.END: keyString = "\x1B[K"; break;
+                    case Keyboard.ENTER: keyString = "\r\n"; break;
+                    case Keyboard.ESCAPE: keyString = "\x1B"; break;
+                    case Keyboard.F1: keyString = "\x1BOP"; break;
+                    case Keyboard.F2: keyString = "\x1BOQ"; break;
+                    case Keyboard.F3: keyString = "\x1BOR"; break;
+                    case Keyboard.F4: keyString = "\x1BOS"; break;
+                    case Keyboard.F5: keyString = "\x1BOt"; break;
+                    case Keyboard.F6: keyString = "\x1B[17~"; break;
+                    case Keyboard.F7: keyString = "\x1B[18~"; break;
+                    case Keyboard.F8: keyString = "\x1B[19~"; break;
+                    case Keyboard.F9: keyString = "\x1B[20~"; break;
+                    case Keyboard.F10: keyString = "\x1B[21~"; break;
+                    case Keyboard.F11: keyString = "\x1B[23~"; break;
+                    case Keyboard.F12: keyString = "\x1B[24~"; break;
+                    case Keyboard.HOME: keyString = "\x1B[H"; break;
+                    case Keyboard.INSERT: keyString = "\x1B@"; break;
+                    case Keyboard.LEFT: keyString = "\x1B[D"; break;
+                    case Keyboard.PAGE_DOWN: keyString = "\x1B[U"; break;
+                    case Keyboard.PAGE_UP: keyString = "\x1B[V"; break;
+                    case Keyboard.RIGHT: keyString = "\x1B[C"; break;
+                    case Keyboard.SPACE: keyString = " "; break;
+                    case Keyboard.TAB: keyString = "\t"; break;
+                    case Keyboard.UP: keyString = "\x1B[A"; break;
+                }
             }
         }
 
@@ -2366,8 +2396,24 @@ var TCrt = function () {
 
         // Opera doesn't give us the charCode, so try which in that case
         var which = (ke.charCode !== null) ? ke.charCode : ke.which;
-        if ((which >= 33) && (which <= 126)) {
-            keyString = String.fromCharCode(which);
+        if (FAtari) {
+            if ((which >= 33) && (which <= 122)) {
+                keyString = String.fromCharCode(which);
+            }
+        } else if (FC64) {
+            if ((which >= 33) && (which <= 64)) {
+                keyString = String.fromCharCode(which);
+            } else if ((which >= 65) && (which <= 90)) {
+                keyString = String.fromCharCode(which).toLowerCase();
+            } else if ((which >= 91) && (which <= 95)) {
+                keyString = String.fromCharCode(which);
+            } else if ((which >= 97) && (which <= 122)) {
+                keyString = String.fromCharCode(which).toUpperCase();
+            }
+        } else {
+            if ((which >= 33) && (which <= 126)) {
+                keyString = String.fromCharCode(which);
+            }
         }
 
         FKeyBuf.push(new KeyPressEvent(ke, keyString));
@@ -3269,6 +3315,10 @@ var TCrt = function () {
                 // Changes the text color to white. 
                 that.TextColor(that.PETSCII_WHITE);
             }
+            else if (AText.charCodeAt(i) === 0x07) {
+                // Beep (extra, not documented)
+                that.Beep();
+            }
             else if (AText.charCodeAt(i) === 0x08) {
                 // TODO Disables changing the character set using the SHIFT + Commodore key combination. 
                 trace("PETSCII 0x08");
@@ -3276,6 +3326,9 @@ var TCrt = function () {
             else if (AText.charCodeAt(i) === 0x09) {
                 // TODO Enables changing the character set using the SHIFT + Commodore key combination. 
                 trace("PETSCII 0x09");
+            }
+            else if (AText.charCodeAt(i) === 0x0A) {
+                // Ignore, 0x0D will handle linefeeding
             }
             else if ((AText.charCodeAt(i) === 0x0D) || (AText.charCodeAt(i) === 0x8D)) {
                 // Carriage return; next character will go in the first column of the following text line. 
@@ -3286,15 +3339,12 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x0E) {
                 // Select the lowercase/uppercase character set. 
-                that.SetFont("PETSCII-Lower", FFont.Width, FFont.Height);
+                that.SetFont("PETSCII-Lower", 16, 16);
             }
             else if (AText.charCodeAt(i) === 0x11) {
                 // Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
-                // TODO Wrap at bottom edge of screen?
-                if (Y < that.WindRows) {
-                    Y += 1;
-                    DoGoto = true;
-                }
+                Y += 1;
+                DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x12) {
                 // Reverse on: Selects reverse video text. 
@@ -3308,10 +3358,15 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x14) {
                 // Delete, or "backspace"; erases the previous character and moves the cursor one character position to the left. 
-                // TODO Should be destructive
-                // TODO Wrap if at left edge of screen?
-                if (X > 1) {
-                    X -= 1;
+                if ((X > 1) || (Y > 1)) {
+                    if (X === 1) {
+                        X = that.WindCols;
+                        Y -= 1;
+                    } else {
+                        X -= 1;
+                    }
+
+                    that.DelChar();
                     DoGoto = true;
                 }
             }
@@ -3321,11 +3376,13 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x1D) {
                 // Advances the cursor one character position without printing anything. 
-                // TODO Wrap if at right edge of screen?
-                if (X < that.WindCols) {
+                if (X === that.WindCols) {
+                    X = 1;
+                    Y += 1;
+                } else {
                     X += 1;
-                    DoGoto = true;
                 }
+                DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x1E) {
                 // Changes the text color to green. 
@@ -3341,7 +3398,7 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x8E) {
                 // Select the uppercase/semigraphics character set. 
-                that.SetFont("PETSCII-Upper", FFont.Width, FFont.Height);
+                that.SetFont("PETSCII-Upper", 16, 16);
             }
             else if (AText.charCodeAt(i) === 0x90) {
                 // Changes the text color to black. 
@@ -3349,7 +3406,6 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x91) {
                 // Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
-                // TODO Wrap at top edge of screen?
                 if (Y > 1) {
                     Y -= 1;
                     DoGoto = true;
@@ -3361,14 +3417,12 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x93) {
                 // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
-                // TODO Reset text attr?
                 that.ClrScr();
                 X = 1;
                 Y = 1;
             }
             else if (AText.charCodeAt(i) === 0x94) {
                 // Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
-                // TODO With a specific attr?
                 that.InsChar(" ");
             }
             else if (AText.charCodeAt(i) === 0x95) {
@@ -3405,9 +3459,13 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x9D) {
                 // Moves the cursor one character position backwards, without printing or deleting anything. 
-                // TODO Wrap if at left edge of screen?
-                if (X > 1) {
-                    X -= 1;
+                if ((X > 1) || (Y > 1)) {
+                    if (X === 1) {
+                        X = that.WindCols;
+                        Y -= 1;
+                    } else {
+                        X -= 1;
+                    }
                     DoGoto = true;
                 }
             }
@@ -3424,7 +3482,6 @@ var TCrt = function () {
                 Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
 
                 // Check if we've passed the right edge of the window
-                // TODO Auto wrap?
                 if ((X + Buf.length) > that.WindCols) {
                     // We have, need to flush buffer before moving cursor
                     that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
@@ -5265,322 +5322,322 @@ TelnetOption = new TTelnetOption();/*
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
 var TTelnetConnection = function () {
-    // TODO Event to let htmlterm to know to enable or disable echo
-    //public static const ECHO_OFF: String = "EchoOff";
-    //public static const ECHO_ON: String = "EchoOn";
+	// TODO Event to let htmlterm to know to enable or disable echo
+	//public static const ECHO_OFF: String = "EchoOff";
+	//public static const ECHO_ON: String = "EchoOn";
 
-    // Private variables
-    var that = this;
-    var FNegotiatedOptions;
-    var FNegotiationState;
+	// Private variables
+	var that = this;
+	var FNegotiatedOptions;
+	var FNegotiationState;
 
-    // Private methods
-    var HandleEcho = function (ACommand) { }; // Do nothing
-    var HandleTerminalType = function () { }; // Do nothing
-    var HandleWindowSize = function () { }; // Do nothing
-    var SendCommand = function (ACommand) { }; // Do nothing
-    var SendDo = function (AOption) { }; // Do nothing
-    var SendDont = function (AOption) { }; // Do nothing
-    var SendResponse = function (ACommand, AOption, ASetting) { }; // Do nothing
-    var SendSubnegotiate = function (AOption) { }; // Do nothing
-    var SendSubnegotiateEnd = function () { }; // Do nothing
-    var SendWill = function (AOption) { }; // Do nothing
-    var SendWont = function (AOption) { }; // Do nothing
+	// Private methods
+	var HandleEcho = function (ACommand) { }; // Do nothing
+	var HandleTerminalType = function () { }; // Do nothing
+	var HandleWindowSize = function () { }; // Do nothing
+	var SendCommand = function (ACommand) { }; // Do nothing
+	var SendDo = function (AOption) { }; // Do nothing
+	var SendDont = function (AOption) { }; // Do nothing
+	var SendResponse = function (ACommand, AOption, ASetting) { }; // Do nothing
+	var SendSubnegotiate = function (AOption) { }; // Do nothing
+	var SendSubnegotiateEnd = function () { }; // Do nothing
+	var SendWill = function (AOption) { }; // Do nothing
+	var SendWont = function (AOption) { }; // Do nothing
 
-    this.flush = function () {
-        var ToSendString = FOutputBuffer.toString();
-        var ToSendBytes = [];
+	this.flush = function () {
+		var ToSendString = FOutputBuffer.toString();
+		var ToSendBytes = [];
 
-        // Read 1 byte at a time, doubling up IAC's as necessary
-        for (i = 0; i < ToSendString.length; i++) {
-            ToSendBytes.push(ToSendString.charCodeAt(i));
-            if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
-                ToSendBytes.push(TelnetCommand.IAC);
-            }
-        }
+		// Read 1 byte at a time, doubling up IAC's as necessary
+		for (i = 0; i < ToSendString.length; i++) {
+			ToSendBytes.push(ToSendString.charCodeAt(i));
+			if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
+				ToSendBytes.push(TelnetCommand.IAC);
+			}
+		}
 
-        FWebSocket.send(new Uint8Array(ToSendBytes));
-        FOutputBuffer.clear();
-    };
+		FWebSocket.send(new Uint8Array(ToSendBytes));
+		FOutputBuffer.clear();
+	};
 
-    HandleEcho = function (ACommand) {
-        switch (ACommand) {
-            case TelnetCommand.Do:
-                FLocalEcho = true;
-                SendWill(TelnetOption.Echo);
-                //TODO dispatchEvent(new Event(ECHO_ON));
-                break;
-            case TelnetCommand.Dont:
-                FLocalEcho = false;
-                SendWont(TelnetOption.Echo);
-                //TODO dispatchEvent(new Event(ECHO_OFF));
-                break;
-            case TelnetCommand.Will:
-                FLocalEcho = false;
-                SendDo(TelnetOption.Echo);
-                //TODO dispatchEvent(new Event(ECHO_OFF));
-                break;
-            case TelnetCommand.Wont:
-                FLocalEcho = true;
-                SendDont(TelnetOption.Echo);
-                //TODO dispatchEvent(new Event(ECHO_ON));
-                break;
-        }
-    };
+	HandleEcho = function (ACommand) {
+		switch (ACommand) {
+			case TelnetCommand.Do:
+				FLocalEcho = true;
+				SendWill(TelnetOption.Echo);
+				//TODO dispatchEvent(new Event(ECHO_ON));
+				break;
+			case TelnetCommand.Dont:
+				FLocalEcho = false;
+				SendWont(TelnetOption.Echo);
+				//TODO dispatchEvent(new Event(ECHO_OFF));
+				break;
+			case TelnetCommand.Will:
+				FLocalEcho = false;
+				SendDo(TelnetOption.Echo);
+				//TODO dispatchEvent(new Event(ECHO_OFF));
+				break;
+			case TelnetCommand.Wont:
+				FLocalEcho = true;
+				SendDont(TelnetOption.Echo);
+				//TODO dispatchEvent(new Event(ECHO_ON));
+				break;
+		}
+	};
 
-    HandleTerminalType = function () {
-        SendWill(TelnetOption.TerminalType);
-        SendSubnegotiate(TelnetOption.TerminalType);
+	HandleTerminalType = function () {
+		SendWill(TelnetOption.TerminalType);
+		SendSubnegotiate(TelnetOption.TerminalType);
 
-        var ToSendBytes = [];
-        ToSendBytes.push(0); // IS
+		var ToSendBytes = [];
+		ToSendBytes.push(0); // IS
 
-        var TerminalType = "DEC-VT100"; // TODO
-        for (var i = 0; i < TerminalType.length; i++) {
-            ToSendBytes.push(TerminalType.charCodeAt(i));
-        }
-        FWebSocket.send(new Uint8Array(ToSendBytes));
+		var TerminalType = "DEC-VT100"; // TODO
+		for (var i = 0; i < TerminalType.length; i++) {
+			ToSendBytes.push(TerminalType.charCodeAt(i));
+		}
+		FWebSocket.send(new Uint8Array(ToSendBytes));
 
-        SendSubnegotiateEnd();
-    };
+		SendSubnegotiateEnd();
+	};
 
-    HandleWindowSize = function () {
-        SendWill(TelnetOption.WindowSize);
-        SendSubnegotiate(TelnetOption.WindowSize);
+	HandleWindowSize = function () {
+		SendWill(TelnetOption.WindowSize);
+		SendSubnegotiate(TelnetOption.WindowSize);
 
-        var Size = [];
-        Size[0] = (FWindowSize.x >> 8) & 0xff;
-        Size[1] = FWindowSize.x & 0xff;
-        Size[2] = (FWindowSize.y >> 8) & 0xff;
-        Size[3] = FWindowSize.y & 0xff;
+		var Size = [];
+		Size[0] = (FWindowSize.x >> 8) & 0xff;
+		Size[1] = FWindowSize.x & 0xff;
+		Size[2] = (FWindowSize.y >> 8) & 0xff;
+		Size[3] = FWindowSize.y & 0xff;
 
-        var ToSendBytes = [];
-        for (var i = 0; i < Size.length; i++) {
-            ToSendBytes.push(Size[i]);
-            if (Size[i] == TelnetCommand.IAC) ToSendBytes.push(TelnetCommand.IAC); // Double up so it's not treated as an IAC
-        }
-        FWebSocket.send(new Uint8Array(ToSendBytes));
+		var ToSendBytes = [];
+		for (var i = 0; i < Size.length; i++) {
+			ToSendBytes.push(Size[i]);
+			if (Size[i] == TelnetCommand.IAC) ToSendBytes.push(TelnetCommand.IAC); // Double up so it's not treated as an IAC
+		}
+		FWebSocket.send(new Uint8Array(ToSendBytes));
 
-        SendSubnegotiateEnd();
-    };
+		SendSubnegotiateEnd();
+	};
 
-    this.__defineSetter__("LocalEcho", function (ALocalEcho) {
-        FLocalEcho = ALocalEcho;
-        if (that.connected) {
-            if (FLocalEcho) {
-                SendWill(TelnetOption.Echo);
-            } else {
-                SendWont(TelnetOption.Echo);
-            }
-        }
-    });
+	this.__defineSetter__("LocalEcho", function (ALocalEcho) {
+		FLocalEcho = ALocalEcho;
+		if (that.connected) {
+			if (FLocalEcho) {
+				SendWill(TelnetOption.Echo);
+			} else {
+				SendWont(TelnetOption.Echo);
+			}
+		}
+	});
 
-    NegotiateInbound = function (AData) {
-        // Get any waiting data and handle negotiation
-        while (AData.bytesAvailable) {
-            var B = AData.readUnsignedByte();
+	NegotiateInbound = function (AData) {
+		// Get any waiting data and handle negotiation
+		while (AData.bytesAvailable) {
+			var B = AData.readUnsignedByte();
 
-            if (FNegotiationState == TelnetNegotiationState.Data) {
-                if (B == TelnetCommand.IAC) {
-                    FNegotiationState = TelnetNegotiationState.IAC;
-                }
-                else {
-                    FInputBuffer.writeByte(B);
-                }
-            }
-            else if (FNegotiationState == TelnetNegotiationState.IAC) {
-                if (B == TelnetCommand.IAC) {
-                    FNegotiationState = TelnetNegotiationState.Data;
-                    FInputBuffer.writeByte(B);
-                }
-                else {
-                    switch (B) {
-                        case TelnetCommand.NoOperation:
-                        case TelnetCommand.DataMark:
-                        case TelnetCommand.Break:
-                        case TelnetCommand.InterruptProcess:
-                        case TelnetCommand.AbortOutput:
-                        case TelnetCommand.AreYouThere:
-                        case TelnetCommand.EraseCharacter:
-                        case TelnetCommand.EraseLine:
-                        case TelnetCommand.GoAhead:
-                            // We recognize, but ignore these for now
-                            FNegotiationState = TelnetNegotiationState.Data;
-                            break;
-                        case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
-                        case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
-                        case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
-                        case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
-                        default: FNegotiationState = TelnetNegotiationState.Data; break;
-                    }
-                }
-            }
-            else if (FNegotiationState == TelnetNegotiationState.Do) {
-                switch (B) {
-                    case TelnetOption.TransmitBinary: SendWill(B); break;
-                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
-                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
-                    case TelnetOption.TerminalType: HandleTerminalType(); break;
-                    case TelnetOption.WindowSize: HandleWindowSize(); break;
-                    case TelnetOption.LineMode: SendWont(B); break;
-                    default: SendWont(B); break;
-                }
-                FNegotiationState = TelnetNegotiationState.Data;
-            }
-            else if (FNegotiationState == TelnetNegotiationState.Dont) {
-                switch (B) {
-                    case TelnetOption.TransmitBinary: SendWill(B); break;
-                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Dont); break;
-                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
-                    case TelnetOption.WindowSize: SendWont(B); break;
-                    case TelnetOption.LineMode: SendWont(B); break;
-                    default: SendWont(B); break;
-                }
-                FNegotiationState = TelnetNegotiationState.Data;
-            }
-            else if (FNegotiationState == TelnetNegotiationState.Will) {
-                switch (B) {
-                    case TelnetOption.TransmitBinary: SendDo(B); break;
-                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Will); break;
-                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
-                    case TelnetOption.WindowSize: SendDont(B); break;
-                    case TelnetOption.LineMode: SendDont(B); break;
-                    default: SendDont(B); break;
-                }
-                FNegotiationState = TelnetNegotiationState.Data;
-            }
-            else if (FNegotiationState == TelnetNegotiationState.Wont) {
-                switch (B) {
-                    case TelnetOption.TransmitBinary: SendDo(B); break;
-                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Wont); break;
-                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
-                    case TelnetOption.WindowSize: SendDont(B); break;
-                    case TelnetOption.LineMode: SendDont(B); break;
-                    default: SendDont(B); break;
-                }
-                FNegotiationState = TelnetNegotiationState.Data;
-            }
-            else {
-                FNegotiationState = TelnetNegotiationState.Data;
-            }
-        }
-    };
+			if (FNegotiationState == TelnetNegotiationState.Data) {
+				if (B == TelnetCommand.IAC) {
+					FNegotiationState = TelnetNegotiationState.IAC;
+				}
+				else {
+					FInputBuffer.writeByte(B);
+				}
+			}
+			else if (FNegotiationState == TelnetNegotiationState.IAC) {
+				if (B == TelnetCommand.IAC) {
+					FNegotiationState = TelnetNegotiationState.Data;
+					FInputBuffer.writeByte(B);
+				}
+				else {
+					switch (B) {
+						case TelnetCommand.NoOperation:
+						case TelnetCommand.DataMark:
+						case TelnetCommand.Break:
+						case TelnetCommand.InterruptProcess:
+						case TelnetCommand.AbortOutput:
+						case TelnetCommand.AreYouThere:
+						case TelnetCommand.EraseCharacter:
+						case TelnetCommand.EraseLine:
+						case TelnetCommand.GoAhead:
+							// We recognize, but ignore these for now
+							FNegotiationState = TelnetNegotiationState.Data;
+							break;
+						case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
+						case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
+						case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
+						case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
+						default: FNegotiationState = TelnetNegotiationState.Data; break;
+					}
+				}
+			}
+			else if (FNegotiationState == TelnetNegotiationState.Do) {
+				switch (B) {
+					case TelnetOption.TransmitBinary: SendWill(B); break;
+					case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
+					case TelnetOption.SuppressGoAhead: SendWill(B); break;
+					case TelnetOption.TerminalType: HandleTerminalType(); break;
+					case TelnetOption.WindowSize: HandleWindowSize(); break;
+					case TelnetOption.LineMode: SendWont(B); break;
+					default: SendWont(B); break;
+				}
+				FNegotiationState = TelnetNegotiationState.Data;
+			}
+			else if (FNegotiationState == TelnetNegotiationState.Dont) {
+				switch (B) {
+					case TelnetOption.TransmitBinary: SendWill(B); break;
+					case TelnetOption.Echo: HandleEcho(TelnetCommand.Dont); break;
+					case TelnetOption.SuppressGoAhead: SendWill(B); break;
+					case TelnetOption.WindowSize: SendWont(B); break;
+					case TelnetOption.LineMode: SendWont(B); break;
+					default: SendWont(B); break;
+				}
+				FNegotiationState = TelnetNegotiationState.Data;
+			}
+			else if (FNegotiationState == TelnetNegotiationState.Will) {
+				switch (B) {
+					case TelnetOption.TransmitBinary: SendDo(B); break;
+					case TelnetOption.Echo: HandleEcho(TelnetCommand.Will); break;
+					case TelnetOption.SuppressGoAhead: SendDo(B); break;
+					case TelnetOption.WindowSize: SendDont(B); break;
+					case TelnetOption.LineMode: SendDont(B); break;
+					default: SendDont(B); break;
+				}
+				FNegotiationState = TelnetNegotiationState.Data;
+			}
+			else if (FNegotiationState == TelnetNegotiationState.Wont) {
+				switch (B) {
+					case TelnetOption.TransmitBinary: SendDo(B); break;
+					case TelnetOption.Echo: HandleEcho(TelnetCommand.Wont); break;
+					case TelnetOption.SuppressGoAhead: SendDo(B); break;
+					case TelnetOption.WindowSize: SendDont(B); break;
+					case TelnetOption.LineMode: SendDont(B); break;
+					default: SendDont(B); break;
+				}
+				FNegotiationState = TelnetNegotiationState.Data;
+			}
+			else {
+				FNegotiationState = TelnetNegotiationState.Data;
+			}
+		}
+	};
 
-    // TODO Need NegotiateOutbound
+	// TODO Need NegotiateOutbound
 
-    SendCommand = function (ACommand) {
-        var ToSendBytes = [];
-        ToSendBytes.push(TelnetCommand.IAC);
-        ToSendBytes.push(ACommand);
-        FWebSocket.send(new Uint8Array(ToSendBytes));
-    };
+	SendCommand = function (ACommand) {
+		var ToSendBytes = [];
+		ToSendBytes.push(TelnetCommand.IAC);
+		ToSendBytes.push(ACommand);
+		FWebSocket.send(new Uint8Array(ToSendBytes));
+	};
 
-    SendDo = function (AOption) {
-        if (FNegotiatedOptions[AOption] == TelnetCommand.Do) {
-            // Already negotiated this option, don't go into a negotiation storm!
-        } else {
-            FNegotiatedOptions[AOption] = TelnetCommand.Do;
+	SendDo = function (AOption) {
+		if (FNegotiatedOptions[AOption] == TelnetCommand.Do) {
+			// Already negotiated this option, don't go into a negotiation storm!
+		} else {
+			FNegotiatedOptions[AOption] = TelnetCommand.Do;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Do);
-            ToSendBytes.push(AOption);
-            FWebSocket.send(new Uint8Array(ToSendBytes));
-        }
-    };
+			var ToSendBytes = [];
+			ToSendBytes.push(TelnetCommand.IAC);
+			ToSendBytes.push(TelnetCommand.Do);
+			ToSendBytes.push(AOption);
+			FWebSocket.send(new Uint8Array(ToSendBytes));
+		}
+	};
 
-    SendDont = function (AOption) {
-        if (FNegotiatedOptions[AOption] == TelnetCommand.Dont) {
-            // Already negotiated this option, don't go into a negotiation storm!
-        } else {
-            FNegotiatedOptions[AOption] = TelnetCommand.Dont;
+	SendDont = function (AOption) {
+		if (FNegotiatedOptions[AOption] == TelnetCommand.Dont) {
+			// Already negotiated this option, don't go into a negotiation storm!
+		} else {
+			FNegotiatedOptions[AOption] = TelnetCommand.Dont;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Dont);
-            ToSendBytes.push(AOption);
-            FWebSocket.send(new Uint8Array(ToSendBytes));
-        }
-    };
+			var ToSendBytes = [];
+			ToSendBytes.push(TelnetCommand.IAC);
+			ToSendBytes.push(TelnetCommand.Dont);
+			ToSendBytes.push(AOption);
+			FWebSocket.send(new Uint8Array(ToSendBytes));
+		}
+	};
 
-    SendResponse = function (ACommand, AOption, ASetting) {
-        if (ASetting) {
-            // We want to do the option
-            switch (ACommand) {
-                case TelnetCommand.Do: SendWill(AOption); break;
-                case TelnetCommand.Dont: SendWill(AOption); break;
-                case TelnetCommand.Will: SendDont(AOption); break;
-                case TelnetCommand.Wont: SendDont(AOption); break;
-            }
-        } else {
-            // We don't want to do the option
-            switch (ACommand) {
-                case TelnetCommand.Do: SendWont(AOption); break;
-                case TelnetCommand.Dont: SendWont(AOption); break;
-                case TelnetCommand.Will: SendDo(AOption); break;
-                case TelnetCommand.Wont: SendDo(AOption); break;
-            }
-        }
-    };
+	SendResponse = function (ACommand, AOption, ASetting) {
+		if (ASetting) {
+			// We want to do the option
+			switch (ACommand) {
+				case TelnetCommand.Do: SendWill(AOption); break;
+				case TelnetCommand.Dont: SendWill(AOption); break;
+				case TelnetCommand.Will: SendDont(AOption); break;
+				case TelnetCommand.Wont: SendDont(AOption); break;
+			}
+		} else {
+			// We don't want to do the option
+			switch (ACommand) {
+				case TelnetCommand.Do: SendWont(AOption); break;
+				case TelnetCommand.Dont: SendWont(AOption); break;
+				case TelnetCommand.Will: SendDo(AOption); break;
+				case TelnetCommand.Wont: SendDo(AOption); break;
+			}
+		}
+	};
 
-    SendSubnegotiate = function (AOption) {
-        var ToSendBytes = [];
-        ToSendBytes.push(TelnetCommand.IAC);
-        ToSendBytes.push(TelnetCommand.Subnegotiation);
-        ToSendBytes.push(AOption);
-        FWebSocket.send(new Uint8Array(ToSendBytes));
-    };
+	SendSubnegotiate = function (AOption) {
+		var ToSendBytes = [];
+		ToSendBytes.push(TelnetCommand.IAC);
+		ToSendBytes.push(TelnetCommand.Subnegotiation);
+		ToSendBytes.push(AOption);
+		FWebSocket.send(new Uint8Array(ToSendBytes));
+	};
 
-    SendSubnegotiateEnd = function () {
-        var ToSendBytes = [];
-        ToSendBytes.push(TelnetCommand.IAC);
-        ToSendBytes.push(TelnetCommand.EndSubnegotiation);
-        FWebSocket.send(new Uint8Array(ToSendBytes));
-    };
+	SendSubnegotiateEnd = function () {
+		var ToSendBytes = [];
+		ToSendBytes.push(TelnetCommand.IAC);
+		ToSendBytes.push(TelnetCommand.EndSubnegotiation);
+		FWebSocket.send(new Uint8Array(ToSendBytes));
+	};
 
-    SendWill = function (AOption) {
-        if (FNegotiatedOptions[AOption] == TelnetCommand.Will) {
-            // Already negotiated this option, don't go into a negotiation storm!
-        } else {
-            FNegotiatedOptions[AOption] = TelnetCommand.Will;
+	SendWill = function (AOption) {
+		if (FNegotiatedOptions[AOption] == TelnetCommand.Will) {
+			// Already negotiated this option, don't go into a negotiation storm!
+		} else {
+			FNegotiatedOptions[AOption] = TelnetCommand.Will;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Will);
-            ToSendBytes.push(AOption);
-            FWebSocket.send(new Uint8Array(ToSendBytes));
-        }
-    };
+			var ToSendBytes = [];
+			ToSendBytes.push(TelnetCommand.IAC);
+			ToSendBytes.push(TelnetCommand.Will);
+			ToSendBytes.push(AOption);
+			FWebSocket.send(new Uint8Array(ToSendBytes));
+		}
+	};
 
-    SendWont = function (AOption) {
-        if (FNegotiatedOptions[AOption] == TelnetCommand.Wont) {
-            // Already negotiated this option, don't go into a negotiation storm!
-        } else {
-            FNegotiatedOptions[AOption] = TelnetCommand.Wont;
+	SendWont = function (AOption) {
+		if (FNegotiatedOptions[AOption] == TelnetCommand.Wont) {
+			// Already negotiated this option, don't go into a negotiation storm!
+		} else {
+			FNegotiatedOptions[AOption] = TelnetCommand.Wont;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Wont);
-            ToSendBytes.push(AOption);
-            FWebSocket.send(new Uint8Array(ToSendBytes));
-        }
-    };
+			var ToSendBytes = [];
+			ToSendBytes.push(TelnetCommand.IAC);
+			ToSendBytes.push(TelnetCommand.Wont);
+			ToSendBytes.push(AOption);
+			FWebSocket.send(new Uint8Array(ToSendBytes));
+		}
+	};
 
-    this.__defineSetter__("WindowSize", function (AWindowSize) {
-        FWindowSize = AWindowSize;
-        if (FNegotiatedOptions[TelnetOption.WindowSize] == TelnetCommand.Will) {
-            HandleWindowSize();
-        }
-    });
+	this.__defineSetter__("WindowSize", function (AWindowSize) {
+		FWindowSize = AWindowSize;
+		if (FNegotiatedOptions[TelnetOption.WindowSize] == TelnetCommand.Will) {
+			HandleWindowSize();
+		}
+	});
 
-    // Constructor
-    TTcpConnection.call(this);
+	// Constructor
+	TTcpConnection.call(this);
 
-    FNegotiatedOptions = [];
-    for (var i = 0; i < 256; i++) {
-        FNegotiatedOptions[i] = 0;
-    }
-    FNegotiationState = TelnetNegotiationState.Data;
+	FNegotiatedOptions = [];
+	for (var i = 0; i < 256; i++) {
+		FNegotiatedOptions[i] = 0;
+	}
+	FNegotiationState = TelnetNegotiationState.Data;
 };
 
 TTelnetConnection.prototype = new TTcpConnectionSurrogate();
@@ -6599,6 +6656,8 @@ var THtmlTerm = function () {
             Crt.Blink = FBlink;
             Crt.SetFont(FCodePage, FFontWidth, FFontHeight);
             Crt.SetScreenSize(FScreenColumns, FScreenRows);
+            Crt.Window(1, 1, FScreenColumns, FScreenRows - 1);
+            Crt.FastWrite(" Not connected                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
             Crt.Canvas.addEventListener(Crt.SCREEN_SIZE_CHANGED, OnCrtScreenSizeChanged, false);
 
             // Test websocket support

@@ -122,7 +122,7 @@ var TCrt = function () {
         // FCanvas
         FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
         // FCursor
-        FFlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
+        FFlushBeforeWritePETSCII = [0x05, 0x07, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x11, 0x12, 0x13, 0x14, 0x1c, 0x1d, 0x1e, 0x1f, 0x81, 0x8d, 0x8e, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f];
         FFont = new TFont();
         FFont.onchange = OnFontChanged;
         FInScrollBack = false;
@@ -688,70 +688,100 @@ var TCrt = function () {
 
         var keyString = "";
 
-        if (ke.ctrlKey) {
-            // Handle control + letter keys
-            if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
-                if (FAtari) {
+        if (FAtari) {
+            if (ke.ctrlKey) {
+                if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
                     switch (ke.keyCode) {
                         case 72: keyString = String.fromCharCode(126); break; // CTRL-H
                         case 74: keyString = String.fromCharCode(13); break; // CTRL-J
                         case 77: keyString = String.fromCharCode(155); break; // CTRL-M
                         default: keyString = String.fromCharCode(ke.keyCode - 64); break;
                     }
-                } else {
-                    keyString = String.fromCharCode(ke.keyCode - 64);
                 }
-            }
-            else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
-                if (FAtari) {
+                else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
                     switch (ke.keyCode) {
                         case 104: keyString = String.fromCharCode(126); break; // CTRL-H
                         case 106: keyString = String.fromCharCode(13); break; // CTRL-J
                         case 109: keyString = String.fromCharCode(155); break; // CTRL-M
                         default: keyString = String.fromCharCode(ke.keyCode - 96); break;
                     }
-                } else {
-                    keyString = String.fromCharCode(ke.keyCode - 96);
+                }
+            } else {
+                switch (ke.keyCode) {
+                    // Handle special keys                                                                                                  
+                    case Keyboard.BACKSPACE: keyString = "\x7E"; break;
+                    case Keyboard.DELETE: keyString = "\x7E"; break;
+                    case Keyboard.DOWN: keyString = "\x1D"; break;
+                    case Keyboard.ENTER: keyString = "\x9B"; break;
+                    case Keyboard.LEFT: keyString = "\x1E"; break;
+                    case Keyboard.RIGHT: keyString = "\x1F"; break;
+                    case Keyboard.SPACE: keyString = " "; break;
+                    case Keyboard.TAB: keyString = "\x7F"; break;
+                    case Keyboard.UP: keyString = "\x1C"; break;
                 }
             }
-        } else {
+        } else if (FC64) {
             switch (ke.keyCode) {
                 // Handle special keys                                                                                                  
-                case Keyboard.BACKSPACE:
-                    if (FAtari) {
-                        keyString = String.fromCharCode(0x7E);
-                    } else if (FC64) {
-                        keyString = String.fromCharCode(0x14);
-                    } else {
-                        keyString = String.fromCharCode(ke.keyCode);
-                    }
-                    break;
-                case Keyboard.DELETE: keyString = "\x7F"; break;
-                case Keyboard.DOWN: keyString = "\x1B[B"; break;
-                case Keyboard.END: keyString = "\x1B[K"; break;
-                case Keyboard.ENTER: keyString = (FAtari) ? "\x9B" : "\r\n"; break;
-                case Keyboard.ESCAPE: keyString = "\x1B"; break;
-                case Keyboard.F1: keyString = "\x1BOP"; break;
-                case Keyboard.F2: keyString = "\x1BOQ"; break;
-                case Keyboard.F3: keyString = "\x1BOR"; break;
-                case Keyboard.F4: keyString = "\x1BOS"; break;
-                case Keyboard.F5: keyString = "\x1BOt"; break;
-                case Keyboard.F6: keyString = "\x1B[17~"; break;
-                case Keyboard.F7: keyString = "\x1B[18~"; break;
-                case Keyboard.F8: keyString = "\x1B[19~"; break;
-                case Keyboard.F9: keyString = "\x1B[20~"; break;
-                case Keyboard.F10: keyString = "\x1B[21~"; break;
-                case Keyboard.F11: keyString = "\x1B[23~"; break;
-                case Keyboard.F12: keyString = "\x1B[24~"; break;
-                case Keyboard.HOME: keyString = "\x1B[H"; break;
-                case Keyboard.INSERT: keyString = "\x1B@"; break;
-                case Keyboard.LEFT: keyString = "\x1B[D"; break;
-                case Keyboard.PAGE_DOWN: keyString = "\x1B[U"; break;
-                case Keyboard.PAGE_UP: keyString = "\x1B[V"; break;
-                case Keyboard.RIGHT: keyString = "\x1B[C"; break;
+                case Keyboard.BACKSPACE: keyString = "\x14"; break;
+                case Keyboard.DELETE: keyString = "\x14"; break;
+                case Keyboard.DOWN: keyString = "\x11"; break;
+                case Keyboard.ENTER: keyString = "\r"; break;
+                case Keyboard.F1: keyString = "\x85"; break;
+                case Keyboard.F2: keyString = "\x89"; break;
+                case Keyboard.F3: keyString = "\x86"; break;
+                case Keyboard.F4: keyString = "\x8A"; break;
+                case Keyboard.F5: keyString = "\x87"; break;
+                case Keyboard.F6: keyString = "\x8B"; break;
+                case Keyboard.F7: keyString = "\x88"; break;
+                case Keyboard.F8: keyString = "\x8C"; break;
+                case Keyboard.HOME: keyString = "\x13"; break;
+                case Keyboard.INSERT: keyString = "\x94"; break;
+                case Keyboard.LEFT: keyString = "\x9D"; break;
+                case Keyboard.RIGHT: keyString = "\x1D"; break;
                 case Keyboard.SPACE: keyString = " "; break;
-                case Keyboard.TAB: keyString = (FAtari) ? "\x7F" : String.fromCharCode(ke.keyCode); break;
-                case Keyboard.UP: keyString = "\x1B[A"; break;
+                case Keyboard.UP: keyString = "\x91"; break;
+            }
+        } else {
+            if (ke.ctrlKey) {
+                // Handle control + letter keys
+                if ((ke.keyCode >= 65) && (ke.keyCode <= 90)) {
+                    keyString = String.fromCharCode(ke.keyCode - 64);
+                }
+                else if ((ke.keyCode >= 97) && (ke.keyCode <= 122)) {
+                    keyString = String.fromCharCode(ke.keyCode - 96);
+                }
+            } else {
+                switch (ke.keyCode) {
+                    // Handle special keys                                                                                                  
+                    case Keyboard.BACKSPACE: keyString = "\b"; break;
+                    case Keyboard.DELETE: keyString = "\x7F"; break;
+                    case Keyboard.DOWN: keyString = "\x1B[B"; break;
+                    case Keyboard.END: keyString = "\x1B[K"; break;
+                    case Keyboard.ENTER: keyString = "\r\n"; break;
+                    case Keyboard.ESCAPE: keyString = "\x1B"; break;
+                    case Keyboard.F1: keyString = "\x1BOP"; break;
+                    case Keyboard.F2: keyString = "\x1BOQ"; break;
+                    case Keyboard.F3: keyString = "\x1BOR"; break;
+                    case Keyboard.F4: keyString = "\x1BOS"; break;
+                    case Keyboard.F5: keyString = "\x1BOt"; break;
+                    case Keyboard.F6: keyString = "\x1B[17~"; break;
+                    case Keyboard.F7: keyString = "\x1B[18~"; break;
+                    case Keyboard.F8: keyString = "\x1B[19~"; break;
+                    case Keyboard.F9: keyString = "\x1B[20~"; break;
+                    case Keyboard.F10: keyString = "\x1B[21~"; break;
+                    case Keyboard.F11: keyString = "\x1B[23~"; break;
+                    case Keyboard.F12: keyString = "\x1B[24~"; break;
+                    case Keyboard.HOME: keyString = "\x1B[H"; break;
+                    case Keyboard.INSERT: keyString = "\x1B@"; break;
+                    case Keyboard.LEFT: keyString = "\x1B[D"; break;
+                    case Keyboard.PAGE_DOWN: keyString = "\x1B[U"; break;
+                    case Keyboard.PAGE_UP: keyString = "\x1B[V"; break;
+                    case Keyboard.RIGHT: keyString = "\x1B[C"; break;
+                    case Keyboard.SPACE: keyString = " "; break;
+                    case Keyboard.TAB: keyString = "\t"; break;
+                    case Keyboard.UP: keyString = "\x1B[A"; break;
+                }
             }
         }
 
@@ -774,8 +804,24 @@ var TCrt = function () {
 
         // Opera doesn't give us the charCode, so try which in that case
         var which = (ke.charCode !== null) ? ke.charCode : ke.which;
-        if ((which >= 33) && (which <= 126)) {
-            keyString = String.fromCharCode(which);
+        if (FAtari) {
+            if ((which >= 33) && (which <= 122)) {
+                keyString = String.fromCharCode(which);
+            }
+        } else if (FC64) {
+            if ((which >= 33) && (which <= 64)) {
+                keyString = String.fromCharCode(which);
+            } else if ((which >= 65) && (which <= 90)) {
+                keyString = String.fromCharCode(which).toLowerCase();
+            } else if ((which >= 91) && (which <= 95)) {
+                keyString = String.fromCharCode(which);
+            } else if ((which >= 97) && (which <= 122)) {
+                keyString = String.fromCharCode(which).toUpperCase();
+            }
+        } else {
+            if ((which >= 33) && (which <= 126)) {
+                keyString = String.fromCharCode(which);
+            }
         }
 
         FKeyBuf.push(new KeyPressEvent(ke, keyString));
@@ -1688,6 +1734,9 @@ var TCrt = function () {
             else if (AText.charCodeAt(i) === 0x09) {
                 // TODO Enables changing the character set using the SHIFT + Commodore key combination. 
                 trace("PETSCII 0x09");
+            }
+            else if (AText.charCodeAt(i) === 0x0A) {
+                // Ignore, 0x0D will handle linefeeding
             }
             else if ((AText.charCodeAt(i) === 0x0D) || (AText.charCodeAt(i) === 0x8D)) {
                 // Carriage return; next character will go in the first column of the following text line. 
