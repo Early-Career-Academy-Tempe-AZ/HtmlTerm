@@ -395,8 +395,8 @@ var TAnsi = function () {
     };
 
     this.Write = function (AText) {
-        // Check for Atari mode, which doesn't use ANSI
-        if (Crt.Atari) {
+        // Check for Atari/C64 mode, which doesn't use ANSI
+        if (Crt.Atari || Crt.C64) {
             Crt.Write(AText);
         } else {
             var Buffer = "";

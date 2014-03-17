@@ -39,6 +39,7 @@ TYPE Source\randm\crt\font\TFont.js >> Release\HtmlTerm.js
 REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFont437.js >> Release\HtmlTerm.js
 REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFontAmiga.js >> Release\HtmlTerm.js
 REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFontAtari.js >> Release\HtmlTerm.js
+REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFontC64.js >> Release\HtmlTerm.js
 REM NO EXTRA FONTS IN THIS FILE TYPE Source\randm\crt\font\TFontIntl.js >> Release\HtmlTerm.js
 TYPE Source\randm\crt\BorderStyle.js >> Release\HtmlTerm.js
 TYPE Source\randm\crt\ContentAlignment.js >> Release\HtmlTerm.js
@@ -56,6 +57,10 @@ TYPE Source\randm\ansi\ESCQEvent.js >> Release\HtmlTerm.js
 TYPE Source\randm\ansi\Ansi.js >> Release\HtmlTerm.js
 
 TYPE Source\randm\tcp\TTcpConnection.js >> Release\HtmlTerm.js
+TYPE Source\randm\tcp\telnet\TelnetCommand.js >> Release\HtmlTerm.js
+TYPE Source\randm\tcp\telnet\TelnetNegotiationState.js >> Release\HtmlTerm.js
+TYPE Source\randm\tcp\telnet\TelnetOption.js >> Release\HtmlTerm.js
+TYPE Source\randm\tcp\telnet\TTelnetConnection.js >> Release\HtmlTerm.js
 
 TYPE Source\randm\xfer\CRC.js >> Release\HtmlTerm.js
 TYPE Source\randm\xfer\TFileRecord.js >> Release\HtmlTerm.js
@@ -69,6 +74,7 @@ REM Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm
 COPY Source\randm\crt\font\TFont437.js Release\HtmlTerm.font-437.js
 COPY Source\randm\crt\font\TFontAmiga.js Release\HtmlTerm.font-amiga.js
 COPY Source\randm\crt\font\TFontAtari.js Release\HtmlTerm.font-atari.js
+COPY Source\randm\crt\font\TFontC64.js Release\HtmlTerm.font-c64.js
 COPY Source\randm\crt\font\TFontIntl.js Release\HtmlTerm.font-intl.js
 
 COPY Release\HtmlTerm.js ..\ftelnet\flash\html-template\

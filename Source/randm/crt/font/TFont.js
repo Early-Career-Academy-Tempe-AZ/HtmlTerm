@@ -52,22 +52,29 @@ var TFont = function () {
         return FCodePage;
     });
 
-    this.GetChar = function (ACharCode, AAttr) {
+    this.GetChar = function (ACharCode, ACharInfo) {
         if (FLoading > 0) { return 0; }
 
         // Validate values
-        if ((ACharCode < 0) || (ACharCode > 255) || (AAttr < 0) || (AAttr > 255)) { return 0; }
+        if ((ACharCode < 0) || (ACharCode > 255) || (ACharInfo.Attr < 0) || (ACharInfo.Attr > 255)) { return 0; }
+
+        var FCharMapKey = ACharCode + "-" + ACharInfo.Attr + "-" + ACharInfo.Reversed;
 
         // Check if we have used this character before
-        if (!FCharMap[ACharCode][AAttr]) {
+        if (!FCharMap[FCharMapKey]) {
             // Nope, so get character (in black and white)
-            FCharMap[ACharCode][AAttr] = FContext.getImageData(ACharCode * FSize.x, 0, FSize.x, FSize.y);
+            FCharMap[FCharMapKey] = FContext.getImageData(ACharCode * FSize.x, 0, FSize.x, FSize.y);
 
             // Now colour the character (if necessary -- If attr 15 is requested, we already have it since the image is white on black!)
-            if (AAttr !== 15) {
+            if ((ACharInfo.Attr !== 15) || (ACharInfo.Reversed)) {
                 // Get the text colour
-                var Back = that.HTML_COLOURS[(AAttr & 0xF0) >> 4];
-                var Fore = that.HTML_COLOURS[(AAttr & 0x0F)];
+                if (ACharInfo.Reversed) {
+                    var Fore = that.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                    var Back = that.HTML_COLOURS[(ACharInfo.Attr & 0x0F)];
+                } else {
+                    var Back = that.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                    var Fore = that.HTML_COLOURS[(ACharInfo.Attr & 0x0F)];
+                }
 
                 // Get the individual RGB colours
                 var BackR = parseInt(Back[1].toString() + Back[2].toString(), 16);
@@ -82,9 +89,9 @@ var TFont = function () {
                 var G = 0;
                 var B = 0;
                 var i;
-                for (i = 0; i < FCharMap[ACharCode][AAttr].data.length; i += 4) {
+                for (i = 0; i < FCharMap[FCharMapKey].data.length; i += 4) {
                     // Determine if it's back or fore colour to use for this pixel
-                    if (FCharMap[ACharCode][AAttr].data[i] > 127) {
+                    if (FCharMap[FCharMapKey].data[i] > 127) {
                         R = ForeR;
                         G = ForeG;
                         B = ForeB;
@@ -94,16 +101,16 @@ var TFont = function () {
                         B = BackB;
                     }
 
-                    FCharMap[ACharCode][AAttr].data[i]     = R;
-                    FCharMap[ACharCode][AAttr].data[i + 1] = G;
-                    FCharMap[ACharCode][AAttr].data[i + 2] = B;
-                    FCharMap[ACharCode][AAttr].data[i + 3] = 255;
+                    FCharMap[FCharMapKey].data[i] = R;
+                    FCharMap[FCharMapKey].data[i + 1] = G;
+                    FCharMap[FCharMapKey].data[i + 2] = B;
+                    FCharMap[FCharMapKey].data[i + 3] = 255;
                 }
             }
         }
 
         // Return the character if we have it
-        return FCharMap[ACharCode][AAttr];
+        return FCharMap[FCharMapKey];
     };
 
     this.__defineGetter__("Height", function () {
@@ -167,8 +174,7 @@ var TFont = function () {
         if (FUpper) { FContext.drawImage(FUpper, FLower.width, 0); }
 
         // Reset CharMap
-        var i;
-        for (i = 0; i < 256; i++) { FCharMap[i] = []; }
+        FCharMap = [];
 
         // Raise change event
         FLoading -= 1;
@@ -187,11 +193,9 @@ var TFont = function () {
     FCodePage = 437;
     FSize = new Point(9, 16);
 
-    var i;
     FCanvas = document.createElement("canvas");
     if (FCanvas.getContext) {
         FContext = FCanvas.getContext("2d");
-        for (i = 0; i < 256; i++) { FCharMap[i] = []; }
         this.Load(FCodePage, FSize.x, FSize.y);
     }
 };

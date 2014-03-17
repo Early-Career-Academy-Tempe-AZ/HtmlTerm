@@ -1240,22 +1240,29 @@ var TFont = function () {
         return FCodePage;
     });
 
-    this.GetChar = function (ACharCode, AAttr) {
+    this.GetChar = function (ACharCode, ACharInfo) {
         if (FLoading > 0) { return 0; }
 
         // Validate values
-        if ((ACharCode < 0) || (ACharCode > 255) || (AAttr < 0) || (AAttr > 255)) { return 0; }
+        if ((ACharCode < 0) || (ACharCode > 255) || (ACharInfo.Attr < 0) || (ACharInfo.Attr > 255)) { return 0; }
+
+        var FCharMapKey = ACharCode + "-" + ACharInfo.Attr + "-" + ACharInfo.Reversed;
 
         // Check if we have used this character before
-        if (!FCharMap[ACharCode][AAttr]) {
+        if (!FCharMap[FCharMapKey]) {
             // Nope, so get character (in black and white)
-            FCharMap[ACharCode][AAttr] = FContext.getImageData(ACharCode * FSize.x, 0, FSize.x, FSize.y);
+            FCharMap[FCharMapKey] = FContext.getImageData(ACharCode * FSize.x, 0, FSize.x, FSize.y);
 
             // Now colour the character (if necessary -- If attr 15 is requested, we already have it since the image is white on black!)
-            if (AAttr !== 15) {
+            if ((ACharInfo.Attr !== 15) || (ACharInfo.Reversed)) {
                 // Get the text colour
-                var Back = that.HTML_COLOURS[(AAttr & 0xF0) >> 4];
-                var Fore = that.HTML_COLOURS[(AAttr & 0x0F)];
+                if (ACharInfo.Reversed) {
+                    var Fore = that.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                    var Back = that.HTML_COLOURS[(ACharInfo.Attr & 0x0F)];
+                } else {
+                    var Back = that.HTML_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                    var Fore = that.HTML_COLOURS[(ACharInfo.Attr & 0x0F)];
+                }
 
                 // Get the individual RGB colours
                 var BackR = parseInt(Back[1].toString() + Back[2].toString(), 16);
@@ -1270,9 +1277,9 @@ var TFont = function () {
                 var G = 0;
                 var B = 0;
                 var i;
-                for (i = 0; i < FCharMap[ACharCode][AAttr].data.length; i += 4) {
+                for (i = 0; i < FCharMap[FCharMapKey].data.length; i += 4) {
                     // Determine if it's back or fore colour to use for this pixel
-                    if (FCharMap[ACharCode][AAttr].data[i] > 127) {
+                    if (FCharMap[FCharMapKey].data[i] > 127) {
                         R = ForeR;
                         G = ForeG;
                         B = ForeB;
@@ -1282,16 +1289,16 @@ var TFont = function () {
                         B = BackB;
                     }
 
-                    FCharMap[ACharCode][AAttr].data[i]     = R;
-                    FCharMap[ACharCode][AAttr].data[i + 1] = G;
-                    FCharMap[ACharCode][AAttr].data[i + 2] = B;
-                    FCharMap[ACharCode][AAttr].data[i + 3] = 255;
+                    FCharMap[FCharMapKey].data[i] = R;
+                    FCharMap[FCharMapKey].data[i + 1] = G;
+                    FCharMap[FCharMapKey].data[i + 2] = B;
+                    FCharMap[FCharMapKey].data[i + 3] = 255;
                 }
             }
         }
 
         // Return the character if we have it
-        return FCharMap[ACharCode][AAttr];
+        return FCharMap[FCharMapKey];
     };
 
     this.__defineGetter__("Height", function () {
@@ -1355,8 +1362,7 @@ var TFont = function () {
         if (FUpper) { FContext.drawImage(FUpper, FLower.width, 0); }
 
         // Reset CharMap
-        var i;
-        for (i = 0; i < 256; i++) { FCharMap[i] = []; }
+        FCharMap = [];
 
         // Raise change event
         FLoading -= 1;
@@ -1375,11 +1381,9 @@ var TFont = function () {
     FCodePage = 437;
     FSize = new Point(9, 16);
 
-    var i;
     FCanvas = document.createElement("canvas");
     if (FCanvas.getContext) {
         FContext = FCanvas.getContext("2d");
-        for (i = 0; i < 256; i++) { FCharMap[i] = []; }
         this.Load(FCodePage, FSize.x, FSize.y);
     }
 };/*
@@ -1544,16 +1548,18 @@ ProgressBarStyle = new TProgressBarStyle();
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var TCharInfo = function (ACh, AAttr, ABlink, AUnderline) {
+var TCharInfo = function (ACh, AAttr, ABlink, AUnderline, AReversed) {
     // Handle optional parameters
     if (typeof ABlink === "undefined") { ABlink = false; }
     if (typeof AUnderline === "undefined") { AUnderline = false; }
+    if (typeof AReversed === "undefined") { AReversed = false; }
 
     // Constructor
     this.Ch = ACh;
     this.Attr = AAttr;
     this.Blink = ABlink;
     this.Underline = AUnderline;
+    this.Reversed = AReversed;
 };/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -1611,6 +1617,7 @@ var TCrt = function () {
     var FBlink;
     var FBlinkHidden;
     var FBuffer;
+    var FC64;
     var FCanvas;
     var FCharInfo;
     var FContext;
@@ -1655,8 +1662,9 @@ var TCrt = function () {
         FBlink = true;
         FBlinkHidden = false;
         // FBuffer
+        FC64 = false;
         // FCanvas
-        FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false);
+        FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
         // FCursor
         FFont = new TFont();
         FFont.onchange = OnFontChanged;
@@ -1736,6 +1744,14 @@ var TCrt = function () {
 
     this.__defineSetter__("Blink", function (ABlink) {
         FBlink = ABlink;
+    });
+
+    this.__defineGetter__("C64", function () {
+        return FC64;
+    });
+
+    this.__defineSetter__("C64", function (AC64) {
+        FC64 = AC64;
     });
 
     this.__defineGetter__("Canvas", function () {
@@ -1891,7 +1907,7 @@ var TCrt = function () {
             for (Y = 0; Y < FScrollBack.length; Y++) {
                 NewRow = [];
                 for (X = 0; X < FScrollBack[Y].length; X++) {
-                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline));
+                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline, FScrollBack[Y][X].Reversed));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -1901,7 +1917,7 @@ var TCrt = function () {
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 NewRow = [];
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline));
+                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -1910,8 +1926,8 @@ var TCrt = function () {
             FScrollBackPosition = FScrollBackTemp.length;
 
             // Display footer showing we're in scrollback mode 
-            that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y, 1, new TCharInfo(" ", 31, false, false), false);
-            that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done", 1, FScreenSize.y, new TCharInfo(" ", 31, false, false), false);
+            that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y, 1, new TCharInfo(" ", 31, false, false, false), false);
+            that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done", 1, FScreenSize.y, new TCharInfo(" ", 31, false, false, false), false);
         }
     };
 
@@ -1931,7 +1947,7 @@ var TCrt = function () {
         if ((AX <= FScreenSize.x) && (AY <= FScreenSize.y)) {
             var i;
             for (i = 0; i < AText.length; i++) {
-                var Char = FFont.GetChar(AText.charCodeAt(i), ACharInfo.Attr);
+                var Char = FFont.GetChar(AText.charCodeAt(i), ACharInfo);
                 if (Char) {
                     if ((!FInScrollBack) || (FInScrollBack && !AUpdateBuffer)) {
                         FContext.putImageData(Char, (AX - 1 + i) * FFont.Width, (AY - 1) * FFont.Height);
@@ -1943,6 +1959,7 @@ var TCrt = function () {
                     FBuffer[AY][AX + i].Attr = ACharInfo.Attr;
                     FBuffer[AY][AX + i].Blink = ACharInfo.Blink;
                     FBuffer[AY][AX + i].Underline = ACharInfo.Underline;
+                    FBuffer[AY][AX + i].Reversed = ACharInfo.Reversed;
                 }
 
                 if (AX + i >= FScreenSize.x) { break; }
@@ -2004,7 +2021,7 @@ var TCrt = function () {
         var Y;
         for (Y = 1; Y <= FScreenSize.y; Y++) {
             for (X = 1; X <= FScreenSize.x; X++) {
-                FBuffer[Y][X] = new TCharInfo(" ", that.LIGHTGRAY, false, false);
+                FBuffer[Y][X] = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
             }
         }
 
@@ -2076,6 +2093,7 @@ var TCrt = function () {
         FCharInfo.Attr = that.LIGHTGRAY;
         FCharInfo.Blink = false;
         FCharInfo.Underline = false;
+        FCharInfo.Reversed = false;
     };
 
     OnBlinkHide = function (e) {
@@ -2160,7 +2178,7 @@ var TCrt = function () {
             if (ke.keyCode === Keyboard.DOWN) {
                 if (FScrollBackPosition < FScrollBackTemp.length) {
                     FScrollBackPosition += 1;
-                    that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(' ', 7), false);
+                    that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(' ', 7, false, false, false), false);
                     that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done ", 1, FScreenSize.y, new TCharInfo(' ', 31), false);
 
                     YDest = FScreenSize.y - 1;
@@ -2187,7 +2205,7 @@ var TCrt = function () {
                     OnKeyDown(new KeyboardEvent("keydown", true, false, 0, Keyboard.DOWN));
                 }
             } else if (ke.keyCode === Keyboard.PAGE_UP) {
-                for (i = 0; i < (FScreenSize.y - 1); i++) {
+                for (i = 0; i < (FScreenSize.y - 1) ; i++) {
                     // TODO Not working
                     OnKeyDown(new KeyboardEvent("keydown", true, false, 0, Keyboard.UP));
                 }
@@ -2242,7 +2260,15 @@ var TCrt = function () {
         } else {
             switch (ke.keyCode) {
                 // Handle special keys                                                                                                  
-                case Keyboard.BACKSPACE: keyString = (FAtari) ? String.fromCharCode(0x7E) : String.fromCharCode(ke.keyCode); break;
+                case Keyboard.BACKSPACE:
+                    if (FAtari) {
+                        keyString = String.fromCharCode(0x7E);
+                    } else if (FC64) {
+                        keyString = String.fromCharCode(0x14);
+                    } else {
+                        keyString = String.fromCharCode(ke.keyCode);
+                    }
+                    break;
                 case Keyboard.DELETE: keyString = "\x7F"; break;
                 case Keyboard.DOWN: keyString = "\x1B[B"; break;
                 case Keyboard.END: keyString = "\x1B[K"; break;
@@ -2367,7 +2393,7 @@ var TCrt = function () {
         var Y;
         for (Y = ATop; Y <= ABottom; Y++) {
             for (X = ALeft; X <= ARight; X++) {
-                Result[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline);
+                Result[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
             }
         }
 
@@ -2435,6 +2461,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y - ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y - ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y - ALines][X].Underline;
+                    FBuffer[Y][X].Reversed = FBuffer[Y - ALines][X].Reversed;
                 }
             }
 
@@ -2445,6 +2472,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
+                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
                 }
             }
         }
@@ -2519,7 +2547,7 @@ var TCrt = function () {
             for (Y = 0; Y < ALines; Y++) {
                 NewRow = [];
                 for (X = AX1; X <= AX2; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline));
+                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline, FBuffer[Y + AY1][X].Reversed));
                 }
                 FScrollBack.push(NewRow);
             }
@@ -2537,6 +2565,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y + ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y + ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y + ALines][X].Underline;
+                    FBuffer[Y][X].Reversed = FBuffer[Y + ALines][X].Reversed;
                 }
             }
 
@@ -2547,6 +2576,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
+                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
                 }
             }
         }
@@ -2577,7 +2607,7 @@ var TCrt = function () {
     };
 
     this.SetCharInfo = function (ACharInfo) {
-        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline);
+        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline, ACharInfo.Reversed);
     };
 
     this.SetFont = function (ACodePage, AWidth, AHeight) {
@@ -2612,7 +2642,7 @@ var TCrt = function () {
             FOldBuffer.InitTwoDimensions(FScreenSize.x, FScreenSize.y);
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline);
+                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
                 }
             }
         }
@@ -2863,6 +2893,8 @@ var TCrt = function () {
         /// <param name="AText">The text to print to the screen</param>
         if (FAtari) {
             that.WriteATASCII(AText);
+        } else if (FC64) {
+            that.WritePETSCII(AText);
         } else {
             that.WriteASCII(AText);
         }
@@ -3129,6 +3161,301 @@ var TCrt = function () {
                 }
                 FATASCIIEscaped = false;
                 FLastChar = AText.charCodeAt(i);
+
+                // Check if we've passed the right edge of the window
+                if ((X + Buf.length) > that.WindCols) {
+                    // We have, need to flush buffer before moving cursor
+                    that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                    Buf = "";
+
+                    X = 1;
+                    Y += 1;
+                    DoGoto = true;
+                }
+            }
+
+            // Check if we've passed the bottom edge of the window
+            if (Y > that.WindRows) {
+                // We have, need to scroll the window one line
+                Y = that.WindRows;
+                that.ScrollUpWindow(1);
+                DoGoto = true;
+            }
+
+            if (DoGoto) { that.GotoXY(X, Y); }
+        }
+
+        // Flush remaining text in buffer if we have any
+        if (Buf.length > 0) {
+            that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+            X += Buf.length;
+            that.GotoXY(X, Y);
+        }
+    };
+
+    this.WritePETSCII = function (AText) {
+        if (AText === undefined) { AText = ""; }
+
+        var X = that.WhereX();
+        var Y = that.WhereY();
+        var Buf = "";
+
+        var i;
+        for (i = 0; i < AText.length; i++) {
+            var DoGoto = false;
+
+            if (AText.charCodeAt(i) === 0x00) {
+                // NULL, ignore
+                i += 0; // Make JSLint happy (doesn't like empty block)
+            }
+            else if (AText.charCodeAt(i) === 0x05) {
+                // Change text colour to white, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.WHITE);
+            }
+            else if (AText.charCodeAt(i) === 0x07) {
+                that.Beep();
+            }
+            else if (AText.charCodeAt(i) === 0x08) {
+                // TODO Disables changing the character set using the SHIFT + Commodore key combination. 
+                trace("PETSCII 0x08");
+            }
+            else if (AText.charCodeAt(i) === 0x09) {
+                // TODO Enables changing the character set using the SHIFT + Commodore key combination. 
+                trace("PETSCII 0x09");
+            }
+            else if (AText.charCodeAt(i) === 0x0A) {
+                // Line feed, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                Y += 1;
+                DoGoto = true;
+
+                Buf = "";
+            }
+                //else if (AText.charCodeAt(i) === 0x0C) {
+                //    // Clear the screen
+                //    that.ClrScr();
+
+                //    // Reset the variables
+                //    X = 1;
+                //    Y = 1;
+                //    Buf = "";
+                //}
+            else if ((AText.charCodeAt(i) === 0x0D) || (AText.charCodeAt(i) === 0x8D)) {
+                // Carriage return (which is also a line feed with PETSCII), need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X = 1;
+                Y += 1;
+                DoGoto = true;
+
+                Buf = "";
+            }
+            else if (AText.charCodeAt(i) === 0x0E) {
+                // TODO Select the lowercase/uppercase character set. 
+                trace("PETSCII 0x0E");
+            }
+            else if (AText.charCodeAt(i) === 0x11) {
+                // TODO  Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
+                trace("PETSCII 0x11");
+            }
+            else if (AText.charCodeAt(i) === 0x12) {
+                // Reverse video on, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                FCharInfo.Reversed = true;
+            }
+            else if (AText.charCodeAt(i) === 0x13) {
+                // TODO Home: Next character will be printed in the upper left-hand corner of the screen. 
+                trace("PETSCII 0x13");
+            }
+            else if (AText.charCodeAt(i) === 0x14) {
+                // TODO Delete, or "backspace"; erases the previous character and moves the cursor one character position to the left. 
+                trace("PETSCII 0x14");
+            }
+            else if (AText.charCodeAt(i) === 0x1C) {
+                // Change text colour to red, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.RED);
+            }
+            else if (AText.charCodeAt(i) === 0x1D) {
+                // TODO Advances the cursor one character position without printing anything. 
+                trace("PETSCII 0x1D");
+            }
+            else if (AText.charCodeAt(i) === 0x1E) {
+                // Change text colour to green, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.GREEN);
+            }
+            else if (AText.charCodeAt(i) === 0x1F) {
+                // Change text colour to blue, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BLUE);
+            }
+            else if (AText.charCodeAt(i) === 0x81) {
+                // Change text colour to orange, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BROWN); // TODO Orange
+            }
+            else if (AText.charCodeAt(i) === 0x8E) {
+                // TODO Select the uppercase/semigraphics character set. 
+                trace("PETSCII 0x8E");
+            }
+            else if (AText.charCodeAt(i) === 0x90) {
+                // Change text colour to black, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BLACK);
+            }
+            else if (AText.charCodeAt(i) === 0x91) {
+                // TODO Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
+                trace("PETSCII 0x91");
+            }
+            else if (AText.charCodeAt(i) === 0x92) {
+                // Reverse video off, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                FCharInfo.Reversed = false;
+            }
+            else if (AText.charCodeAt(i) === 0x93) {
+                // TODO Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
+                trace("PETSCII 0x93");
+            }
+            else if (AText.charCodeAt(i) === 0x94) {
+                // TODO Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
+                trace("PETSCII 0x94");
+            }
+            else if (AText.charCodeAt(i) === 0x95) {
+                // Change text colour to brown, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BROWN);
+            }
+            else if (AText.charCodeAt(i) === 0x96) {
+                // Change text colour to light red, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTRED);
+            }
+            else if (AText.charCodeAt(i) === 0x97) {
+                // Change text colour to dark gray, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.DARKGRAY);
+            }
+            else if (AText.charCodeAt(i) === 0x98) {
+                // Change text colour to medium gray, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTGRAY); // TODO
+            }
+            else if (AText.charCodeAt(i) === 0x99) {
+                // Change text colour to light green, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTGREEN);
+            }
+            else if (AText.charCodeAt(i) === 0x9A) {
+                // Change text colour to light blue, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTBLUE);
+            }
+            else if (AText.charCodeAt(i) === 0x9B) {
+                // Change text colour to light gray, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTGRAY);
+            }
+            else if (AText.charCodeAt(i) === 0x9C) {
+                // Change text colour to purple, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.MAGENTA);
+            }
+            else if (AText.charCodeAt(i) === 0x9D) {
+                // Move cursor left (non destructive), need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                if (X > 1) { X -= 1; } // TODO Wrap if at left edge of screen?
+                DoGoto = true;
+
+                Buf = "";
+            }
+            else if (AText.charCodeAt(i) === 0x9E) {
+                // Change text colour to yellow, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.YELLOW);
+            }
+            else if (AText.charCodeAt(i) === 0x9F) {
+                // Change text colour to cyan, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.CYAN);
+            }
+            else if (AText.charCodeAt(i) !== 0) {
+                // Append character to buffer
+                Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
 
                 // Check if we've passed the right edge of the window
                 if ((X + Buf.length) > that.WindCols) {
@@ -4363,7 +4690,7 @@ var TAnsi = function () {
 
     this.Write = function (AText) {
         // Check for Atari mode, which doesn't use ANSI
-        if (Crt.Atari) {
+        if (Crt.Atari || Crt.C64) {
             Crt.Write(AText);
         } else {
             var Buffer = "";
@@ -4447,10 +4774,12 @@ var TTcpConnection = function () {
 
     // Private variables
     var that = this;
-    var FInputBuffer;
-    var FOutputBuffer;
     var FWasConnected = false;
-    var FWebSocket;
+
+    // Protected variables
+    this.FInputBuffer = null;
+    this.FOutputBuffer;
+    this.FWebSocket = null;
 
     // Private methods
     var OnSocketClose = function () { }; // Do nothing
@@ -4490,19 +4819,6 @@ var TTcpConnection = function () {
         return false;
     });
 
-    this.flush = function () {
-        // if (DEBUG) trace("flush(): " + FOutputBuffer.toString());
-
-        var ToSendString = FOutputBuffer.toString();
-        var ToSendBytes = [];
-        for (i = 0; i < ToSendString.length; i++) {
-            ToSendBytes.push(ToSendString.charCodeAt(i));
-        }
-
-        FWebSocket.send(new Uint8Array(ToSendBytes));
-        FOutputBuffer.clear();
-    };
-
     OnSocketClose = function () {
         if (FWasConnected) {
             that.onclose();
@@ -4529,15 +4845,20 @@ var TTcpConnection = function () {
         var OldPosition = FInputBuffer.position;
         FInputBuffer.position = FInputBuffer.length;
 
+        var Data = new ByteArray();
+
         // Write the incoming message to the input buffer
         if (e.data instanceof ArrayBuffer) {
             var u8 = new Uint8Array(e.data);
             for (var i = 0; i < u8.length; i++) {
-                FInputBuffer.writeByte(u8[i]);
+                Data.writeByte(u8[i]);
             }
         } else {
-            FInputBuffer.writeString(e.data);
+            Data.writeString(e.data);
         }
+        Data.position = 0;
+
+        NegotiateInbound(Data);
 
         // Restore the old buffer position
         FInputBuffer.position = OldPosition;
@@ -4685,6 +5006,630 @@ var TTcpConnection = function () {
 
 var TTcpConnectionSurrogate = function () { };
 TTcpConnectionSurrogate.prototype = TTcpConnection.prototype;/*
+  HtmlTerm: An HTML5 WebSocket client
+  Copyright (C) 2009-2013  Rick Parrish, R&M Software
+
+  This file is part of HtmlTerm.
+
+  HtmlTerm is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  any later version.
+
+  HtmlTerm is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var TelnetCommand = 0;
+var TTelnetCommand = function () {
+    /// <summary>
+    /// SE: End of subnegotiation parameters.
+    /// </summary>
+    this.EndSubnegotiation = 240;
+		
+    /// <summary>
+    /// NOP: No operation.
+    /// </summary>
+    this.NoOperation = 241;
+		
+    /// <summary>
+    /// Data Mark: The data stream portion of a Synch. This should always be accompanied by a TCP Urgent notification.
+    /// </summary>
+    this.DataMark = 242;
+		
+    /// <summary>
+    /// Break: NVT character BRK.
+    /// </summary>
+    this.Break = 243;
+		
+    /// <summary>
+    /// Interrupt Process: The function IP.
+    /// </summary>
+    this.InterruptProcess = 244;
+		
+    /// <summary>
+    /// Abort output: The function AO.
+    /// </summary>
+    this.AbortOutput = 245;
+		
+    /// <summary>
+    /// Are You There: The function AYT.
+    /// </summary>
+    this.AreYouThere = 246;
+		
+    /// <summary>
+    /// Erase character: The function EC.
+    /// </summary>
+    this.EraseCharacter = 247;
+		
+    /// <summary>
+    /// Erase Line: The function EL.
+    /// </summary>
+    this.EraseLine = 248;
+		
+    /// <summary>
+    /// Go ahead: The GA signal
+    /// </summary>
+    this.GoAhead = 249;
+		
+    /// <summary>
+    /// SB: Indicates that what follows is subnegotiation of the indicated option.
+    /// </summary>
+    this.Subnegotiation = 250;
+		
+    /// <summary>
+    /// WILL: Indicates the desire to begin performing; or confirmation that you are now performing; the indicated option.
+    /// </summary>
+    this.Will = 251;
+		
+    /// <summary>
+    /// WON'T: Indicates the refusal to perform; or continue performing; the indicated option.
+    /// </summary>
+    this.Wont = 252;
+		
+    /// <summary>
+    /// DO: Indicates the request that the other party perform; or confirmation that you are expecting the other party to perform; the indicated option.
+    /// </summary>
+    this.Do = 253;
+		
+    /// <summary>
+    /// DON'T: Indicates the demand that the other party stop performing; or confirmation that you are no longer expecting the other party to perform; the indicated option.
+    /// </summary>
+    this.Dont = 254;
+		
+    /// <summary>
+    /// IAC: Data Byte 255
+    /// </summary>
+    this.IAC = 255;
+};
+TelnetCommand = new TTelnetCommand();/*
+  HtmlTerm: An HTML5 WebSocket client
+  Copyright (C) 2009-2013  Rick Parrish, R&M Software
+
+  This file is part of HtmlTerm.
+
+  HtmlTerm is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  any later version.
+
+  HtmlTerm is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var TelnetNegotiationState = 0;
+var TTelnetNegotiationState = function () {
+    /// <summary>
+    /// The default data state
+    /// </summary>
+    this.Data = 0;
+		
+    /// <summary>
+    /// The last received character was an IAC
+    /// </summary>
+    this.IAC = 1;
+		
+    /// <summary>
+    /// The last received character was a DO command
+    /// </summary>
+    this.Do = 2;
+		
+    /// <summary>
+    /// The last received character was a DONT command
+    /// </summary>
+    this.Dont = 3;
+		
+    /// <summary>
+    /// The last received character was a WILL command
+    /// </summary>
+    this.Will = 4;
+		
+    /// <summary>
+    /// The last received character was a WONT command
+    /// </summary>
+    this.Wont = 5;
+};
+TelnetNegotiationState = new TTelnetNegotiationState();/*
+  HtmlTerm: An HTML5 WebSocket client
+  Copyright (C) 2009-2013  Rick Parrish, R&M Software
+
+  This file is part of HtmlTerm.
+
+  HtmlTerm is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  any later version.
+
+  HtmlTerm is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var TelnetOption = 0;
+var TTelnetOption = function () {
+	/// <summary>
+	/// When enabled; data is transmitted as 8-bit binary data.
+	/// </summary>
+	/// <remarks>
+	/// Defined in RFC 856
+	/// 
+	/// Default is to not transmit in binary.
+	/// </remarks>
+	this.TransmitBinary = 0;
+		
+	/// <summary>
+	/// When enabled; the side performing the echoing transmits (echos) data characters it receives back to the sender of the data characters.
+	/// </summary>
+	/// <remarks>
+	/// Defined in RFC 857
+	/// 
+	/// Default is to not echo over the telnet connection.
+	/// </remarks>
+	this.Echo = 1;
+		
+	// TODO
+	this.Reconnection = 2;
+		
+	/// <summary>
+	/// When enabled; the sender need not transmit GAs.
+	/// </summary>
+	/// <remarks>
+	/// Defined in RFC 858
+	/// 
+	/// Default is to not suppress go aheads.
+	/// </remarks>
+	this.SuppressGoAhead = 3;
+		
+	this.ApproxMessageSizeNegotiation = 4;
+	this.Status = 5;
+	this.TimingMark = 6;
+	this.RemoteControlledTransAndEcho = 7;
+	this.OutputLineWidth = 8;
+	this.OutputPageSize = 9;
+	this.OutputCarriageReturnDisposition = 10;
+	this.OutputHorizontalTabStops = 11;
+	this.OutputHorizontalTabDisposition = 12;
+	this.OutputFormfeedDisposition = 13;
+	this.OutputVerticalTabstops = 14;
+	this.OutputVerticalTabDisposition = 15;
+	this.OutputLinefeedDisposition = 16;
+	this.ExtendedASCII = 17;
+	this.Logout = 18;
+	this.ByteMacro = 19;
+	this.DataEntryTerminal = 20;
+	this.SUPDUP = 21;
+	this.SUPDUPOutput = 22;
+	this.SendLocation = 23;
+	this.TerminalType = 24;
+	this.EndOfRecord = 25;
+	this.TACACSUserIdentification = 26;
+	this.OutputMarking = 27;
+	this.TerminalLocationNumber = 28;
+	this.Telnet3270Regime = 29;
+	this.Xdot3PAD = 30;
+
+	/// <summary>
+	/// Allows the NAWS (negotiate about window size) subnegotiation command to be used if both sides agree
+	/// </summary>
+	/// <remarks>
+	/// Defined in RFC 1073
+	/// 
+	/// Default is to not allow the NAWS subnegotiation
+	/// </remarks>
+	this.WindowSize = 31;
+		
+	this.TerminalSpeed = 32;
+	this.RemoteFlowControl = 33;
+
+	/// <summary>
+	/// Linemode Telnet is a way of doing terminal character processing on the client side of a Telnet connection.
+	/// </summary>
+	/// <remarks>
+	/// Defined in RFC 1184
+	/// 
+	/// Default is to not allow the LINEMODE subnegotiation
+	/// </remarks>
+	this.LineMode = 34;
+		
+	this.XDisplayLocation = 35;
+	this.EnvironmentOption = 36;
+	this.AuthenticationOption = 37;
+	this.EncryptionOption = 38;
+	this.NewEnvironmentOption = 39;
+	this.TN3270E = 40;
+	this.XAUTH = 41;
+	this.CHARSET = 42;
+	this.TelnetRemoteSerialPort = 43;
+	this.ComPortControlOption = 44;
+	this.TelnetSuppressLocalEcho = 45;
+	this.TelnetStartTLS = 46;
+	this.KERMIT = 47;
+	this.SENDURL = 48;
+	this.FORWARD_X = 49;
+};
+TelnetOption = new TTelnetOption();/*
+  HtmlTerm: An HTML5 WebSocket client
+  Copyright (C) 2009-2013  Rick Parrish, R&M Software
+
+  This file is part of HtmlTerm.
+
+  HtmlTerm is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  any later version.
+
+  HtmlTerm is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
+*/
+var TTelnetConnection = function () {
+    // TODO Event to let htmlterm to know to enable or disable echo
+    //public static const ECHO_OFF: String = "EchoOff";
+    //public static const ECHO_ON: String = "EchoOn";
+
+    // Private variables
+    var that = this;
+    var FNegotiatedOptions;
+    var FNegotiationState;
+
+    // Private methods
+    var HandleEcho = function (ACommand) { }; // Do nothing
+    var HandleTerminalType = function () { }; // Do nothing
+    var HandleWindowSize = function () { }; // Do nothing
+    var SendCommand = function (ACommand) { }; // Do nothing
+    var SendDo = function (AOption) { }; // Do nothing
+    var SendDont = function (AOption) { }; // Do nothing
+    var SendResponse = function (ACommand, AOption, ASetting) { }; // Do nothing
+    var SendSubnegotiate = function (AOption) { }; // Do nothing
+    var SendSubnegotiateEnd = function () { }; // Do nothing
+    var SendWill = function (AOption) { }; // Do nothing
+    var SendWont = function (AOption) { }; // Do nothing
+
+    this.flush = function () {
+        var ToSendString = FOutputBuffer.toString();
+        var ToSendBytes = [];
+
+        // Read 1 byte at a time, doubling up IAC's as necessary
+        for (i = 0; i < ToSendString.length; i++) {
+            ToSendBytes.push(ToSendString.charCodeAt(i));
+            if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
+                ToSendBytes.push(TelnetCommand.IAC);
+            }
+        }
+
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+        FOutputBuffer.clear();
+    };
+
+    HandleEcho = function (ACommand) {
+        switch (ACommand) {
+            case TelnetCommand.Do:
+                FLocalEcho = true;
+                SendWill(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_ON));
+                break;
+            case TelnetCommand.Dont:
+                FLocalEcho = false;
+                SendWont(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_OFF));
+                break;
+            case TelnetCommand.Will:
+                FLocalEcho = false;
+                SendDo(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_OFF));
+                break;
+            case TelnetCommand.Wont:
+                FLocalEcho = true;
+                SendDont(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_ON));
+                break;
+        }
+    };
+
+    HandleTerminalType = function () {
+        SendWill(TelnetOption.TerminalType);
+        SendSubnegotiate(TelnetOption.TerminalType);
+
+        var ToSendBytes = [];
+        ToSendBytes.push(0); // IS
+
+        var TerminalType = "DEC-VT100"; // TODO
+        for (var i = 0; i < TerminalType.length; i++) {
+            ToSendBytes.push(TerminalType.charCodeAt(i));
+        }
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+
+        SendSubnegotiateEnd();
+    };
+
+    HandleWindowSize = function () {
+        SendWill(TelnetOption.WindowSize);
+        SendSubnegotiate(TelnetOption.WindowSize);
+
+        var Size = [];
+        Size[0] = (FWindowSize.x >> 8) & 0xff;
+        Size[1] = FWindowSize.x & 0xff;
+        Size[2] = (FWindowSize.y >> 8) & 0xff;
+        Size[3] = FWindowSize.y & 0xff;
+
+        var ToSendBytes = [];
+        for (var i = 0; i < Size.length; i++) {
+            ToSendBytes.push(Size[i]);
+            if (Size[i] == TelnetCommand.IAC) ToSendBytes.push(TelnetCommand.IAC); // Double up so it's not treated as an IAC
+        }
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+
+        SendSubnegotiateEnd();
+    };
+
+    this.__defineSetter__("LocalEcho", function (ALocalEcho) {
+        FLocalEcho = ALocalEcho;
+        if (that.connected) {
+            if (FLocalEcho) {
+                SendWill(TelnetOption.Echo);
+            } else {
+                SendWont(TelnetOption.Echo);
+            }
+        }
+    });
+
+    NegotiateInbound = function (AData) {
+        var s = "";
+
+        // Get any waiting data and handle negotiation
+        while (AData.bytesAvailable) {
+            var B = AData.readUnsignedByte();
+
+            if (FNegotiationState == TelnetNegotiationState.Data) {
+                if (B == TelnetCommand.IAC) {
+                    FNegotiationState = TelnetNegotiationState.IAC;
+                }
+                else {
+                    FInputBuffer.writeByte(B);
+
+                    // TODO
+                    var newchar = "\\x" + ("0" + B.toString(16)).substr(-2);
+                    s += newchar;
+                }
+            }
+            else if (FNegotiationState == TelnetNegotiationState.IAC) {
+                if (B == TelnetCommand.IAC) {
+                    FNegotiationState = TelnetNegotiationState.Data;
+                    FInputBuffer.writeByte(B);
+
+                    // TODO
+                    var newchar = "\\x" + ("0" + B.toString(16)).substr(-2);
+                    s += newchar;
+                }
+                else {
+                    switch (B) {
+                        case TelnetCommand.NoOperation:
+                        case TelnetCommand.DataMark:
+                        case TelnetCommand.Break:
+                        case TelnetCommand.InterruptProcess:
+                        case TelnetCommand.AbortOutput:
+                        case TelnetCommand.AreYouThere:
+                        case TelnetCommand.EraseCharacter:
+                        case TelnetCommand.EraseLine:
+                        case TelnetCommand.GoAhead:
+                            // We recognize, but ignore these for now
+                            FNegotiationState = TelnetNegotiationState.Data;
+                            break;
+                        case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
+                        case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
+                        case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
+                        case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
+                        default: FNegotiationState = TelnetNegotiationState.Data; break;
+                    }
+                }
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Do) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendWill(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
+                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
+                    case TelnetOption.TerminalType: HandleTerminalType(); break;
+                    case TelnetOption.WindowSize: HandleWindowSize(); break;
+                    case TelnetOption.LineMode: SendWont(B); break;
+                    default: SendWont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Dont) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendWill(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Dont); break;
+                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
+                    case TelnetOption.WindowSize: SendWont(B); break;
+                    case TelnetOption.LineMode: SendWont(B); break;
+                    default: SendWont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Will) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendDo(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Will); break;
+                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.WindowSize: SendDont(B); break;
+                    case TelnetOption.LineMode: SendDont(B); break;
+                    default: SendDont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Wont) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendDo(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Wont); break;
+                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.WindowSize: SendDont(B); break;
+                    case TelnetOption.LineMode: SendDont(B); break;
+                    default: SendDont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else {
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+        }
+
+        trace(s);
+    };
+
+    // TODO Need NegotiateOutbound
+
+    SendCommand = function (ACommand) {
+        var ToSendBytes = [];
+        ToSendBytes.push(TelnetCommand.IAC);
+        ToSendBytes.push(ACommand);
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+    };
+
+    SendDo = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Do) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Do;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Do);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
+
+    SendDont = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Dont) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Dont;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Dont);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
+
+    SendResponse = function (ACommand, AOption, ASetting) {
+        if (ASetting) {
+            // We want to do the option
+            switch (ACommand) {
+                case TelnetCommand.Do: SendWill(AOption); break;
+                case TelnetCommand.Dont: SendWill(AOption); break;
+                case TelnetCommand.Will: SendDont(AOption); break;
+                case TelnetCommand.Wont: SendDont(AOption); break;
+            }
+        } else {
+            // We don't want to do the option
+            switch (ACommand) {
+                case TelnetCommand.Do: SendWont(AOption); break;
+                case TelnetCommand.Dont: SendWont(AOption); break;
+                case TelnetCommand.Will: SendDo(AOption); break;
+                case TelnetCommand.Wont: SendDo(AOption); break;
+            }
+        }
+    };
+
+    SendSubnegotiate = function (AOption) {
+        var ToSendBytes = [];
+        ToSendBytes.push(TelnetCommand.IAC);
+        ToSendBytes.push(TelnetCommand.Subnegotiation);
+        ToSendBytes.push(AOption);
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+    };
+
+    SendSubnegotiateEnd = function () {
+        var ToSendBytes = [];
+        ToSendBytes.push(TelnetCommand.IAC);
+        ToSendBytes.push(TelnetCommand.EndSubnegotiation);
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+    };
+
+    SendWill = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Will) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Will;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Will);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
+
+    SendWont = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Wont) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Wont;
+
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Wont);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
+
+    this.__defineSetter__("WindowSize", function (AWindowSize) {
+        FWindowSize = AWindowSize;
+        if (FNegotiatedOptions[TelnetOption.WindowSize] == TelnetCommand.Will) {
+            HandleWindowSize();
+        }
+    });
+
+    // Constructor
+    TTcpConnection.call(this);
+
+    FNegotiatedOptions = [];
+    for (var i = 0; i < 256; i++) {
+        FNegotiatedOptions[i] = 0;
+    }
+    FNegotiationState = TelnetNegotiationState.Data;
+};
+
+TTelnetConnection.prototype = new TTcpConnectionSurrogate();
+TTelnetConnection.prototype.constructor = TTelnetConnection;/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -5699,7 +6644,7 @@ var THtmlTerm = function () {
             Crt.Blink = FBlink;
             Crt.SetFont(FCodePage, FFontWidth, FFontHeight);
             Crt.SetScreenSize(FScreenColumns, FScreenRows);
-            Crt.Window(1, 1, 80, FScreenRows - 1);
+            Crt.Window(1, 1, FScreenColumns, FScreenRows - 1);
             Crt.FastWrite(" Not connected                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
             Crt.Canvas.addEventListener(Crt.SCREEN_SIZE_CHANGED, OnCrtScreenSizeChanged, false);
 
@@ -5731,7 +6676,7 @@ var THtmlTerm = function () {
             Ansi.onesc255n = OnAnsiESC255n;
             Ansi.onescQ = OnAnsiESCQ;
 
-            Ansi.Write(atob(FSplashScreen));
+            //TODO Ansi.Write(atob(FSplashScreen));
         } else {
             trace("HtmlTerm Error: Unable to init Crt");
             return false;
@@ -5771,7 +6716,7 @@ var THtmlTerm = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
 
         // Create new connection
-        FConnection = new TTcpConnection();
+        FConnection = new TTelnetConnection(); // TODO Could be TRLoginConnection
         FConnection.onclose = OnConnectionClose;
         FConnection.onconnect = OnConnectionConnect;
         FConnection.onioerror = OnConnectionIOError;

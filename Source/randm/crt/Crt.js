@@ -55,6 +55,7 @@ var TCrt = function () {
     var FBlink;
     var FBlinkHidden;
     var FBuffer;
+    var FC64;
     var FCanvas;
     var FCharInfo;
     var FContext;
@@ -99,8 +100,9 @@ var TCrt = function () {
         FBlink = true;
         FBlinkHidden = false;
         // FBuffer
+        FC64 = false;
         // FCanvas
-        FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false);
+        FCharInfo = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
         // FCursor
         FFont = new TFont();
         FFont.onchange = OnFontChanged;
@@ -180,6 +182,14 @@ var TCrt = function () {
 
     this.__defineSetter__("Blink", function (ABlink) {
         FBlink = ABlink;
+    });
+
+    this.__defineGetter__("C64", function () {
+        return FC64;
+    });
+
+    this.__defineSetter__("C64", function (AC64) {
+        FC64 = AC64;
     });
 
     this.__defineGetter__("Canvas", function () {
@@ -335,7 +345,7 @@ var TCrt = function () {
             for (Y = 0; Y < FScrollBack.length; Y++) {
                 NewRow = [];
                 for (X = 0; X < FScrollBack[Y].length; X++) {
-                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline));
+                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline, FScrollBack[Y][X].Reversed));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -345,7 +355,7 @@ var TCrt = function () {
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 NewRow = [];
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline));
+                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -354,8 +364,8 @@ var TCrt = function () {
             FScrollBackPosition = FScrollBackTemp.length;
 
             // Display footer showing we're in scrollback mode 
-            that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y, 1, new TCharInfo(" ", 31, false, false), false);
-            that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done", 1, FScreenSize.y, new TCharInfo(" ", 31, false, false), false);
+            that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y, 1, new TCharInfo(" ", 31, false, false, false), false);
+            that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done", 1, FScreenSize.y, new TCharInfo(" ", 31, false, false, false), false);
         }
     };
 
@@ -375,7 +385,7 @@ var TCrt = function () {
         if ((AX <= FScreenSize.x) && (AY <= FScreenSize.y)) {
             var i;
             for (i = 0; i < AText.length; i++) {
-                var Char = FFont.GetChar(AText.charCodeAt(i), ACharInfo.Attr);
+                var Char = FFont.GetChar(AText.charCodeAt(i), ACharInfo);
                 if (Char) {
                     if ((!FInScrollBack) || (FInScrollBack && !AUpdateBuffer)) {
                         FContext.putImageData(Char, (AX - 1 + i) * FFont.Width, (AY - 1) * FFont.Height);
@@ -387,6 +397,7 @@ var TCrt = function () {
                     FBuffer[AY][AX + i].Attr = ACharInfo.Attr;
                     FBuffer[AY][AX + i].Blink = ACharInfo.Blink;
                     FBuffer[AY][AX + i].Underline = ACharInfo.Underline;
+                    FBuffer[AY][AX + i].Reversed = ACharInfo.Reversed;
                 }
 
                 if (AX + i >= FScreenSize.x) { break; }
@@ -448,7 +459,7 @@ var TCrt = function () {
         var Y;
         for (Y = 1; Y <= FScreenSize.y; Y++) {
             for (X = 1; X <= FScreenSize.x; X++) {
-                FBuffer[Y][X] = new TCharInfo(" ", that.LIGHTGRAY, false, false);
+                FBuffer[Y][X] = new TCharInfo(" ", that.LIGHTGRAY, false, false, false);
             }
         }
 
@@ -520,6 +531,7 @@ var TCrt = function () {
         FCharInfo.Attr = that.LIGHTGRAY;
         FCharInfo.Blink = false;
         FCharInfo.Underline = false;
+        FCharInfo.Reversed = false;
     };
 
     OnBlinkHide = function (e) {
@@ -604,7 +616,7 @@ var TCrt = function () {
             if (ke.keyCode === Keyboard.DOWN) {
                 if (FScrollBackPosition < FScrollBackTemp.length) {
                     FScrollBackPosition += 1;
-                    that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(' ', 7), false);
+                    that.ScrollUpCustom(1, 1, FScreenSize.x, FScreenSize.y - 1, 1, new TCharInfo(' ', 7, false, false, false), false);
                     that.FastWrite("SCROLLBACK (" + (FScrollBackPosition - (FScreenSize.y - 1) + 1) + "/" + (FScrollBackTemp.length - (FScreenSize.y - 1) + 1) + "): Use Up/Down or PgUp/PgDn to navigate and Esc when done ", 1, FScreenSize.y, new TCharInfo(' ', 31), false);
 
                     YDest = FScreenSize.y - 1;
@@ -631,7 +643,7 @@ var TCrt = function () {
                     OnKeyDown(new KeyboardEvent("keydown", true, false, 0, Keyboard.DOWN));
                 }
             } else if (ke.keyCode === Keyboard.PAGE_UP) {
-                for (i = 0; i < (FScreenSize.y - 1); i++) {
+                for (i = 0; i < (FScreenSize.y - 1) ; i++) {
                     // TODO Not working
                     OnKeyDown(new KeyboardEvent("keydown", true, false, 0, Keyboard.UP));
                 }
@@ -686,7 +698,15 @@ var TCrt = function () {
         } else {
             switch (ke.keyCode) {
                 // Handle special keys                                                                                                  
-                case Keyboard.BACKSPACE: keyString = (FAtari) ? String.fromCharCode(0x7E) : String.fromCharCode(ke.keyCode); break;
+                case Keyboard.BACKSPACE:
+                    if (FAtari) {
+                        keyString = String.fromCharCode(0x7E);
+                    } else if (FC64) {
+                        keyString = String.fromCharCode(0x14);
+                    } else {
+                        keyString = String.fromCharCode(ke.keyCode);
+                    }
+                    break;
                 case Keyboard.DELETE: keyString = "\x7F"; break;
                 case Keyboard.DOWN: keyString = "\x1B[B"; break;
                 case Keyboard.END: keyString = "\x1B[K"; break;
@@ -811,7 +831,7 @@ var TCrt = function () {
         var Y;
         for (Y = ATop; Y <= ABottom; Y++) {
             for (X = ALeft; X <= ARight; X++) {
-                Result[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline);
+                Result[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
             }
         }
 
@@ -879,6 +899,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y - ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y - ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y - ALines][X].Underline;
+                    FBuffer[Y][X].Reversed = FBuffer[Y - ALines][X].Reversed;
                 }
             }
 
@@ -889,6 +910,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
+                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
                 }
             }
         }
@@ -963,7 +985,7 @@ var TCrt = function () {
             for (Y = 0; Y < ALines; Y++) {
                 NewRow = [];
                 for (X = AX1; X <= AX2; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline));
+                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline, FBuffer[Y + AY1][X].Reversed));
                 }
                 FScrollBack.push(NewRow);
             }
@@ -981,6 +1003,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y + ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y + ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y + ALines][X].Underline;
+                    FBuffer[Y][X].Reversed = FBuffer[Y + ALines][X].Reversed;
                 }
             }
 
@@ -991,6 +1014,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
+                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
                 }
             }
         }
@@ -1021,7 +1045,7 @@ var TCrt = function () {
     };
 
     this.SetCharInfo = function (ACharInfo) {
-        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline);
+        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline, ACharInfo.Reversed);
     };
 
     this.SetFont = function (ACodePage, AWidth, AHeight) {
@@ -1056,7 +1080,7 @@ var TCrt = function () {
             FOldBuffer.InitTwoDimensions(FScreenSize.x, FScreenSize.y);
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline);
+                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
                 }
             }
         }
@@ -1307,6 +1331,8 @@ var TCrt = function () {
         /// <param name="AText">The text to print to the screen</param>
         if (FAtari) {
             that.WriteATASCII(AText);
+        } else if (FC64) {
+            that.WritePETSCII(AText);
         } else {
             that.WriteASCII(AText);
         }
@@ -1573,6 +1599,301 @@ var TCrt = function () {
                 }
                 FATASCIIEscaped = false;
                 FLastChar = AText.charCodeAt(i);
+
+                // Check if we've passed the right edge of the window
+                if ((X + Buf.length) > that.WindCols) {
+                    // We have, need to flush buffer before moving cursor
+                    that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                    Buf = "";
+
+                    X = 1;
+                    Y += 1;
+                    DoGoto = true;
+                }
+            }
+
+            // Check if we've passed the bottom edge of the window
+            if (Y > that.WindRows) {
+                // We have, need to scroll the window one line
+                Y = that.WindRows;
+                that.ScrollUpWindow(1);
+                DoGoto = true;
+            }
+
+            if (DoGoto) { that.GotoXY(X, Y); }
+        }
+
+        // Flush remaining text in buffer if we have any
+        if (Buf.length > 0) {
+            that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+            X += Buf.length;
+            that.GotoXY(X, Y);
+        }
+    };
+
+    this.WritePETSCII = function (AText) {
+        if (AText === undefined) { AText = ""; }
+
+        var X = that.WhereX();
+        var Y = that.WhereY();
+        var Buf = "";
+
+        var i;
+        for (i = 0; i < AText.length; i++) {
+            var DoGoto = false;
+
+            if (AText.charCodeAt(i) === 0x00) {
+                // NULL, ignore
+                i += 0; // Make JSLint happy (doesn't like empty block)
+            }
+            else if (AText.charCodeAt(i) === 0x05) {
+                // Change text colour to white, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.WHITE);
+            }
+            else if (AText.charCodeAt(i) === 0x07) {
+                that.Beep();
+            }
+            else if (AText.charCodeAt(i) === 0x08) {
+                // TODO Disables changing the character set using the SHIFT + Commodore key combination. 
+                trace("PETSCII 0x08");
+            }
+            else if (AText.charCodeAt(i) === 0x09) {
+                // TODO Enables changing the character set using the SHIFT + Commodore key combination. 
+                trace("PETSCII 0x09");
+            }
+            else if (AText.charCodeAt(i) === 0x0A) {
+                // Line feed, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                Y += 1;
+                DoGoto = true;
+
+                Buf = "";
+            }
+                //else if (AText.charCodeAt(i) === 0x0C) {
+                //    // Clear the screen
+                //    that.ClrScr();
+
+                //    // Reset the variables
+                //    X = 1;
+                //    Y = 1;
+                //    Buf = "";
+                //}
+            else if ((AText.charCodeAt(i) === 0x0D) || (AText.charCodeAt(i) === 0x8D)) {
+                // Carriage return (which is also a line feed with PETSCII), need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X = 1;
+                Y += 1;
+                DoGoto = true;
+
+                Buf = "";
+            }
+            else if (AText.charCodeAt(i) === 0x0E) {
+                // TODO Select the lowercase/uppercase character set. 
+                trace("PETSCII 0x0E");
+            }
+            else if (AText.charCodeAt(i) === 0x11) {
+                // TODO  Cursor down: Next character will be printed in subsequent column one text line further down the screen. 
+                trace("PETSCII 0x11");
+            }
+            else if (AText.charCodeAt(i) === 0x12) {
+                // Reverse video on, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                FCharInfo.Reversed = true;
+            }
+            else if (AText.charCodeAt(i) === 0x13) {
+                // TODO Home: Next character will be printed in the upper left-hand corner of the screen. 
+                trace("PETSCII 0x13");
+            }
+            else if (AText.charCodeAt(i) === 0x14) {
+                // TODO Delete, or "backspace"; erases the previous character and moves the cursor one character position to the left. 
+                trace("PETSCII 0x14");
+            }
+            else if (AText.charCodeAt(i) === 0x1C) {
+                // Change text colour to red, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.RED);
+            }
+            else if (AText.charCodeAt(i) === 0x1D) {
+                // TODO Advances the cursor one character position without printing anything. 
+                trace("PETSCII 0x1D");
+            }
+            else if (AText.charCodeAt(i) === 0x1E) {
+                // Change text colour to green, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.GREEN);
+            }
+            else if (AText.charCodeAt(i) === 0x1F) {
+                // Change text colour to blue, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BLUE);
+            }
+            else if (AText.charCodeAt(i) === 0x81) {
+                // Change text colour to orange, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BROWN); // TODO Orange
+            }
+            else if (AText.charCodeAt(i) === 0x8E) {
+                // TODO Select the uppercase/semigraphics character set. 
+                trace("PETSCII 0x8E");
+            }
+            else if (AText.charCodeAt(i) === 0x90) {
+                // Change text colour to black, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BLACK);
+            }
+            else if (AText.charCodeAt(i) === 0x91) {
+                // TODO Cursor up: Next character will be printed in subsequent column one text line further up the screen. 
+                trace("PETSCII 0x91");
+            }
+            else if (AText.charCodeAt(i) === 0x92) {
+                // Reverse video off, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                FCharInfo.Reversed = false;
+            }
+            else if (AText.charCodeAt(i) === 0x93) {
+                // TODO Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
+                trace("PETSCII 0x93");
+            }
+            else if (AText.charCodeAt(i) === 0x94) {
+                // TODO Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
+                trace("PETSCII 0x94");
+            }
+            else if (AText.charCodeAt(i) === 0x95) {
+                // Change text colour to brown, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.BROWN);
+            }
+            else if (AText.charCodeAt(i) === 0x96) {
+                // Change text colour to light red, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTRED);
+            }
+            else if (AText.charCodeAt(i) === 0x97) {
+                // Change text colour to dark gray, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.DARKGRAY);
+            }
+            else if (AText.charCodeAt(i) === 0x98) {
+                // Change text colour to medium gray, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTGRAY); // TODO
+            }
+            else if (AText.charCodeAt(i) === 0x99) {
+                // Change text colour to light green, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTGREEN);
+            }
+            else if (AText.charCodeAt(i) === 0x9A) {
+                // Change text colour to light blue, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTBLUE);
+            }
+            else if (AText.charCodeAt(i) === 0x9B) {
+                // Change text colour to light gray, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.LIGHTGRAY);
+            }
+            else if (AText.charCodeAt(i) === 0x9C) {
+                // Change text colour to purple, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.MAGENTA);
+            }
+            else if (AText.charCodeAt(i) === 0x9D) {
+                // Move cursor left (non destructive), need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                if (X > 1) { X -= 1; } // TODO Wrap if at left edge of screen?
+                DoGoto = true;
+
+                Buf = "";
+            }
+            else if (AText.charCodeAt(i) === 0x9E) {
+                // Change text colour to yellow, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.YELLOW);
+            }
+            else if (AText.charCodeAt(i) === 0x9F) {
+                // Change text colour to cyan, need to flush buffer before moving cursor
+                that.FastWrite(Buf, that.WhereXA(), that.WhereYA(), FCharInfo);
+                X += Buf.length;
+                DoGoto = true;
+                Buf = "";
+
+                that.TextColor(that.CYAN);
+            }
+            else if (AText.charCodeAt(i) !== 0) {
+                // Append character to buffer
+                Buf += String.fromCharCode(AText.charCodeAt(i) & 0xFF);
 
                 // Check if we've passed the right edge of the window
                 if ((X + Buf.length) > that.WindCols) {

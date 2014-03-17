@@ -73,6 +73,7 @@
     <Content Include="Source\randm\ansi\ESCQEvent.js" />
     <Content Include="Source\randm\crt\BorderStyle.js" />
     <Content Include="Source\randm\crt\ContentAlignment.js" />
+    <Content Include="Source\randm\crt\font\TFontC64.js" />
     <Content Include="Source\randm\crt\font\TFontIntl.js" />
     <Content Include="Source\randm\crt\TCharInfo.js" />
     <Content Include="Source\randm\crt\Crt.js" />
