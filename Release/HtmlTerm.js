@@ -2712,10 +2712,10 @@ var TCrt = function () {
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
         // Only try to change if the current size doens't match the requested size
-        if ((ACodePage !== FFont.CodePage) || (AWidth !== FFont.Size.x) || (AHeight !== FFont.Size.y)) {
+        //TODOif ((ACodePage !== FFont.CodePage) || (AWidth !== FFont.Size.x) || (AHeight !== FFont.Size.y)) {
             // Request the new font
             FFont.Load(ACodePage, AWidth, AHeight);
-        }
+        //TODO}
     };
 
     this.SetScreenSize = function (AColumns, ARows) {
@@ -5433,9 +5433,12 @@ var TTelnetConnection = function () {
 	});
 
 	NegotiateInbound = function (AData) {
+	    var DebugText = "";
+
 		// Get any waiting data and handle negotiation
 		while (AData.bytesAvailable) {
 			var B = AData.readUnsignedByte();
+			DebugText += "\\x" + ("0" + B.toString(16)).substr(-2);
 
 			if (FNegotiationState == TelnetNegotiationState.Data) {
 				if (B == TelnetCommand.IAC) {
@@ -5521,6 +5524,8 @@ var TTelnetConnection = function () {
 				FNegotiationState = TelnetNegotiationState.Data;
 			}
 		}
+
+		trace(DebugText);
 	};
 
 	// TODO Need NegotiateOutbound
