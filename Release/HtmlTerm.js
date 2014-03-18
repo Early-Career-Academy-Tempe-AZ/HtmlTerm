@@ -1273,57 +1273,51 @@ var TFont = function () {
             // Nope, so get character (in black and white)
             FCharMap[FCharMapKey] = FContext.getImageData(ACharCode * FSize.x, 0, FSize.x, FSize.y);
 
-            // Now colour the character (if necessary -- If attr 15 is requested, we already have it since the image is white on black!)
-            if ((ACharInfo.Attr !== 15) || (ACharInfo.Reversed)) {
-                // Get the text colour
-                if (FCodePage.indexOf("PETSCII") === 0) {
-                    if (ACharInfo.Reversed) {
-                        var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    } else {
-                        var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    }
+            // Now colour the character
+            if (FCodePage.indexOf("PETSCII") === 0) {
+                var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
+            } else {
+                var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
+            }
+
+            // Reverse if necessary
+            if (ACharInfo.Reversed) {
+                var Temp = Fore;
+                Fore = Back;
+                Back = Temp;
+            }
+
+            // Get the individual RGB colours
+            var BackR = parseInt(Back[1].toString() + Back[2].toString(), 16);
+            var BackG = parseInt(Back[3].toString() + Back[4].toString(), 16);
+            var BackB = parseInt(Back[5].toString() + Back[6].toString(), 16);
+            var ForeR = parseInt(Fore[1].toString() + Fore[2].toString(), 16);
+            var ForeG = parseInt(Fore[3].toString() + Fore[4].toString(), 16);
+            var ForeB = parseInt(Fore[5].toString() + Fore[6].toString(), 16);
+
+            // Colour the pixels 1 at a time
+            var R = 0;
+            var G = 0;
+            var B = 0;
+            var i;
+            for (i = 0; i < FCharMap[FCharMapKey].data.length; i += 4) {
+                // Determine if it's back or fore colour to use for this pixel
+                if (FCharMap[FCharMapKey].data[i] > 127) {
+                    R = ForeR;
+                    G = ForeG;
+                    B = ForeB;
                 } else {
-                    if (ACharInfo.Reversed) {
-                        var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    } else {
-                        var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    }
+                    R = BackR;
+                    G = BackG;
+                    B = BackB;
                 }
 
-                // Get the individual RGB colours
-                var BackR = parseInt(Back[1].toString() + Back[2].toString(), 16);
-                var BackG = parseInt(Back[3].toString() + Back[4].toString(), 16);
-                var BackB = parseInt(Back[5].toString() + Back[6].toString(), 16);
-                var ForeR = parseInt(Fore[1].toString() + Fore[2].toString(), 16);
-                var ForeG = parseInt(Fore[3].toString() + Fore[4].toString(), 16);
-                var ForeB = parseInt(Fore[5].toString() + Fore[6].toString(), 16);
-
-                // Colour the pixels 1 at a time
-                var R = 0;
-                var G = 0;
-                var B = 0;
-                var i;
-                for (i = 0; i < FCharMap[FCharMapKey].data.length; i += 4) {
-                    // Determine if it's back or fore colour to use for this pixel
-                    if (FCharMap[FCharMapKey].data[i] > 127) {
-                        R = ForeR;
-                        G = ForeG;
-                        B = ForeB;
-                    } else {
-                        R = BackR;
-                        G = BackG;
-                        B = BackB;
-                    }
-
-                    FCharMap[FCharMapKey].data[i] = R;
-                    FCharMap[FCharMapKey].data[i + 1] = G;
-                    FCharMap[FCharMapKey].data[i + 2] = B;
-                    FCharMap[FCharMapKey].data[i + 3] = 255;
-                }
+                FCharMap[FCharMapKey].data[i] = R;
+                FCharMap[FCharMapKey].data[i + 1] = G;
+                FCharMap[FCharMapKey].data[i + 2] = B;
+                FCharMap[FCharMapKey].data[i + 3] = 255;
             }
         }
 
@@ -2139,7 +2133,11 @@ var TCrt = function () {
         /// attribute. NormVideo restores TextAttr to the value it had when the program
         /// was started.
         /// </remarks>
-        FCharInfo.Attr = that.LIGHTGRAY;
+        if (FC64) {
+            FCharInfo.Attr = that.PETSCII_WHITE;
+        } else {
+            FCharInfo.Attr = that.LIGHTGRAY;
+        }
         FCharInfo.Blink = false;
         FCharInfo.Underline = false;
         FCharInfo.Reversed = false;
@@ -3335,6 +3333,7 @@ var TCrt = function () {
                 // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction with this Carriage return character in the PETSCII system. 
                 X = 1;
                 Y += 1;
+                FCharInfo.Reversed = false;
                 DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x0E) {
@@ -3366,8 +3365,8 @@ var TCrt = function () {
                         X -= 1;
                     }
 
-                    that.DelChar();
-                    DoGoto = true;
+                    that.GotoXY(X, Y);
+                    that.DelChar(1);
                 }
             }
             else if (AText.charCodeAt(i) === 0x1C) {
@@ -3423,7 +3422,8 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x94) {
                 // Insert: Makes room for extra characters at the current cursor position, by "pushing" existing characters at that position further to the right. 
-                that.InsChar(" ");
+                that.GotoXY(X, Y);
+                that.InsChar(1);
             }
             else if (AText.charCodeAt(i) === 0x95) {
                 // Changes the text color to brown. 
@@ -5433,6 +5433,8 @@ var TTelnetConnection = function () {
 	});
 
 	NegotiateInbound = function (AData) {
+	    var DebugText = "";
+
 		// Get any waiting data and handle negotiation
 		while (AData.bytesAvailable) {
 			var B = AData.readUnsignedByte();
@@ -5442,14 +5444,16 @@ var TTelnetConnection = function () {
 					FNegotiationState = TelnetNegotiationState.IAC;
 				}
 				else {
-					FInputBuffer.writeByte(B);
-				}
+				    FInputBuffer.writeByte(B);
+				    DebugText += "\\x" + ("0" + B.toString(16)).substr(-2);
+                }
 			}
 			else if (FNegotiationState == TelnetNegotiationState.IAC) {
 				if (B == TelnetCommand.IAC) {
 					FNegotiationState = TelnetNegotiationState.Data;
 					FInputBuffer.writeByte(B);
-				}
+					DebugText += "\\x" + ("0" + B.toString(16)).substr(-2);
+                }
 				else {
 					switch (B) {
 						case TelnetCommand.NoOperation:
@@ -5521,6 +5525,8 @@ var TTelnetConnection = function () {
 				FNegotiationState = TelnetNegotiationState.Data;
 			}
 		}
+
+		trace(DebugText);
 	};
 
 	// TODO Need NegotiateOutbound

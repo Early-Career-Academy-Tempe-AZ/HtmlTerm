@@ -547,7 +547,11 @@ var TCrt = function () {
         /// attribute. NormVideo restores TextAttr to the value it had when the program
         /// was started.
         /// </remarks>
-        FCharInfo.Attr = that.LIGHTGRAY;
+        if (FC64) {
+            FCharInfo.Attr = that.PETSCII_WHITE;
+        } else {
+            FCharInfo.Attr = that.LIGHTGRAY;
+        }
         FCharInfo.Blink = false;
         FCharInfo.Underline = false;
         FCharInfo.Reversed = false;

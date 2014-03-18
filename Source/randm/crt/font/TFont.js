@@ -85,57 +85,51 @@ var TFont = function () {
             // Nope, so get character (in black and white)
             FCharMap[FCharMapKey] = FContext.getImageData(ACharCode * FSize.x, 0, FSize.x, FSize.y);
 
-            // Now colour the character (if necessary -- If attr 15 is requested, we already have it since the image is white on black!)
-            if ((ACharInfo.Attr !== 15) || (ACharInfo.Reversed)) {
-                // Get the text colour
-                if (FCodePage.indexOf("PETSCII") === 0) {
-                    if (ACharInfo.Reversed) {
-                        var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    } else {
-                        var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    }
+            // Now colour the character
+            if (FCodePage.indexOf("PETSCII") === 0) {
+                var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
+            } else {
+                var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
+            }
+
+            // Reverse if necessary
+            if (ACharInfo.Reversed) {
+                var Temp = Fore;
+                Fore = Back;
+                Back = Temp;
+            }
+
+            // Get the individual RGB colours
+            var BackR = parseInt(Back[1].toString() + Back[2].toString(), 16);
+            var BackG = parseInt(Back[3].toString() + Back[4].toString(), 16);
+            var BackB = parseInt(Back[5].toString() + Back[6].toString(), 16);
+            var ForeR = parseInt(Fore[1].toString() + Fore[2].toString(), 16);
+            var ForeG = parseInt(Fore[3].toString() + Fore[4].toString(), 16);
+            var ForeB = parseInt(Fore[5].toString() + Fore[6].toString(), 16);
+
+            // Colour the pixels 1 at a time
+            var R = 0;
+            var G = 0;
+            var B = 0;
+            var i;
+            for (i = 0; i < FCharMap[FCharMapKey].data.length; i += 4) {
+                // Determine if it's back or fore colour to use for this pixel
+                if (FCharMap[FCharMapKey].data[i] > 127) {
+                    R = ForeR;
+                    G = ForeG;
+                    B = ForeB;
                 } else {
-                    if (ACharInfo.Reversed) {
-                        var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    } else {
-                        var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                        var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
-                    }
+                    R = BackR;
+                    G = BackG;
+                    B = BackB;
                 }
 
-                // Get the individual RGB colours
-                var BackR = parseInt(Back[1].toString() + Back[2].toString(), 16);
-                var BackG = parseInt(Back[3].toString() + Back[4].toString(), 16);
-                var BackB = parseInt(Back[5].toString() + Back[6].toString(), 16);
-                var ForeR = parseInt(Fore[1].toString() + Fore[2].toString(), 16);
-                var ForeG = parseInt(Fore[3].toString() + Fore[4].toString(), 16);
-                var ForeB = parseInt(Fore[5].toString() + Fore[6].toString(), 16);
-
-                // Colour the pixels 1 at a time
-                var R = 0;
-                var G = 0;
-                var B = 0;
-                var i;
-                for (i = 0; i < FCharMap[FCharMapKey].data.length; i += 4) {
-                    // Determine if it's back or fore colour to use for this pixel
-                    if (FCharMap[FCharMapKey].data[i] > 127) {
-                        R = ForeR;
-                        G = ForeG;
-                        B = ForeB;
-                    } else {
-                        R = BackR;
-                        G = BackG;
-                        B = BackB;
-                    }
-
-                    FCharMap[FCharMapKey].data[i] = R;
-                    FCharMap[FCharMapKey].data[i + 1] = G;
-                    FCharMap[FCharMapKey].data[i + 2] = B;
-                    FCharMap[FCharMapKey].data[i + 3] = 255;
-                }
+                FCharMap[FCharMapKey].data[i] = R;
+                FCharMap[FCharMapKey].data[i + 1] = G;
+                FCharMap[FCharMapKey].data[i + 2] = B;
+                FCharMap[FCharMapKey].data[i + 3] = 255;
             }
         }
 
