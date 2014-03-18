@@ -873,13 +873,13 @@ var TCrt = function () {
         }
     };
 
-    // TODO This doesn't match Crt.as -- which is correct?
     this.RestoreScreen = function (ABuffer, ALeft, ATop, ARight, ABottom) {
-        var X;
-        var Y;
-        for (Y = ATop; Y <= ABottom; Y++) {
-            for (X = ALeft; X <= ARight; X++) {
-                that.FastWrite(ABuffer[Y][X].Ch, X, Y, ABuffer[Y][X]);
+        var Height = ABottom - ATop + 1;
+        var Width = ARight - ALeft + 1;
+        for (var Y = 0; Y < Height; Y++) {
+            for (var X = 0; X < Width; X++) {
+                trace("Restoring: " + ABuffer[Y][X].Ch + " to " + ALeft + ":" + ATop);
+                that.FastWrite(ABuffer[Y][X].Ch, X + ALeft, Y + ATop, ABuffer[Y][X]);
             }
         }
     };
@@ -891,19 +891,18 @@ var TCrt = function () {
         that.TextAttr = ((that.TextAttr & 0xF0) >> 4) | ((that.TextAttr & 0x0F) << 4);
     };
 
-    // TODO This doesn't match Crt.as -- which is correct?
     this.SaveScreen = function (ALeft, ATop, ARight, ABottom) {
+        var Height = ABottom - ATop + 1;
+        var Width = ARight - ALeft + 1;
         var Result = [];
-        Result.InitTwoDimensions(FScreenSize.y, FScreenSize.x);
 
-        var X;
-        var Y;
-        for (Y = ATop; Y <= ABottom; Y++) {
-            for (X = ALeft; X <= ARight; X++) {
-                Result[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
+        for (var Y = 0; Y < Height; Y++) {
+            Result[Y] = [];
+            for (var X = 0; X < Width; X++) {
+                Result[Y][X] = new TCharInfo(FBuffer[Y + ATop][X + ALeft].Ch, FBuffer[Y + ATop][X + ALeft].Attr, FBuffer[Y + ATop][X + ALeft].Blink, FBuffer[Y + ATop][X + ALeft].Underline, FBuffer[Y + ATop][X + ALeft].Reversed);
             }
         }
-
+			
         return Result;
     };
 
