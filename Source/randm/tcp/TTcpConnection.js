@@ -26,10 +26,18 @@ var TTcpConnection = function () {
 
     // Private variables
     var that = this;
+    var FWasConnected = false;
+
+    // Protected variables
     this.FInputBuffer = null;
     this.FOutputBuffer;
-    this.FWasConnected = false;
     this.FWebSocket = null;
+
+    // Private methods
+    var OnSocketClose = function () { }; // Do nothing
+    var OnSocketError = function (e) { }; // Do nothing
+    var OnSocketOpen = function () { }; // Do nothing
+    var OnSocketMessage = function (e) { }; // Do nothing
 
     this.__defineGetter__("bytesAvailable", function () {
         return FInputBuffer.bytesAvailable;
@@ -49,10 +57,10 @@ var TTcpConnection = function () {
         FWebSocket.binaryType = 'arraybuffer';
 
         // Set event handlers
-        FWebSocket.onclose = that.OnSocketClose;
-        FWebSocket.onerror = that.OnSocketError;
-        FWebSocket.onmessage = that.OnSocketMessage;
-        FWebSocket.onopen = that.OnSocketOpen;
+        FWebSocket.onclose = OnSocketClose;
+        FWebSocket.onerror = OnSocketError;
+        FWebSocket.onmessage = OnSocketMessage;
+        FWebSocket.onopen = OnSocketOpen;
     };
 
     this.__defineGetter__("connected", function () {
@@ -63,7 +71,27 @@ var TTcpConnection = function () {
         return false;
     });
 
-    this.OnSocketClose = function () {
+    this.flushTcpConnection = function () {
+        var ToSendString = FOutputBuffer.toString();
+        var ToSendBytes = [];
+
+        for (i = 0; i < ToSendString.length; i++) {
+            ToSendBytes.push(ToSendString.charCodeAt(i));
+        }
+
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+        FOutputBuffer.clear();
+    };
+
+    this.NegotiateInboundTcpConnection = function (AData) {
+        // No negotiation for raw tcp connection
+        while (AData.bytesAvailable) {
+            var B = AData.readUnsignedByte();
+            FInputBuffer.writeByte(B);
+        }
+    };
+
+    OnSocketClose = function () {
         if (FWasConnected) {
             that.onclose();
         } else {
@@ -72,16 +100,16 @@ var TTcpConnection = function () {
         FWasConnected = false;
     };
 
-    this.OnSocketError = function (e) {
+    OnSocketError = function (e) {
         that.onioerror(e);
     };
 
-    this.OnSocketOpen = function () {
+    OnSocketOpen = function () {
         FWasConnected = true;
         that.onconnect();
     };
 
-    this.OnSocketMessage = function (e) {
+    OnSocketMessage = function (e) {
         // Free up some memory if we're at the end of the buffer
         if (FInputBuffer.bytesAvailable === 0) { FInputBuffer.clear(); }
 
@@ -252,21 +280,9 @@ var TTcpConnectionSurrogate = function () { };
 TTcpConnectionSurrogate.prototype = TTcpConnection.prototype;
 
 TTcpConnection.prototype.flush = function () {
-    var ToSendString = FOutputBuffer.toString();
-    var ToSendBytes = [];
-
-    for (i = 0; i < ToSendString.length; i++) {
-        ToSendBytes.push(ToSendString.charCodeAt(i));
-    }
-
-    FWebSocket.send(new Uint8Array(ToSendBytes));
-    FOutputBuffer.clear();
+    this.flushTcpConnection();
 };
 
 TTcpConnection.prototype.NegotiateInbound = function (AData) {
-    // No negotiation for raw tcp connection
-    while (AData.bytesAvailable) {
-        var B = AData.readUnsignedByte();
-        FInputBuffer.writeByte(B);
-    }
+    this.NegotiateInboundTcpConnection(AData);
 };

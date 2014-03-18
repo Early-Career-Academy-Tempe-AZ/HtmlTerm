@@ -24,37 +24,66 @@ var TTelnetConnection = function () {
 
     // Private variables
     var that = this;
-    this.FNegotiatedOptions;
-    this.FNegotiationState;
+    var FNegotiatedOptions;
+    var FNegotiationState;
 
-    this.HandleEcho = function (ACommand) {
+    // Private methods
+    var HandleEcho = function (ACommand) { }; // Do nothing
+    var HandleTerminalType = function () { }; // Do nothing
+    var HandleWindowSize = function () { }; // Do nothing
+    var SendCommand = function (ACommand) { }; // Do nothing
+    var SendDo = function (AOption) { }; // Do nothing
+    var SendDont = function (AOption) { }; // Do nothing
+    var SendResponse = function (ACommand, AOption, ASetting) { }; // Do nothing
+    var SendSubnegotiate = function (AOption) { }; // Do nothing
+    var SendSubnegotiateEnd = function () { }; // Do nothing
+    var SendWill = function (AOption) { }; // Do nothing
+    var SendWont = function (AOption) { }; // Do nothing
+
+    this.flushTelnetConnection = function () {
+        var ToSendString = FOutputBuffer.toString();
+        var ToSendBytes = [];
+
+        // Read 1 byte at a time, doubling up IAC's as necessary
+        for (i = 0; i < ToSendString.length; i++) {
+            ToSendBytes.push(ToSendString.charCodeAt(i));
+            if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
+                ToSendBytes.push(TelnetCommand.IAC);
+            }
+        }
+
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+        FOutputBuffer.clear();
+    };
+
+    HandleEcho = function (ACommand) {
         switch (ACommand) {
             case TelnetCommand.Do:
                 FLocalEcho = true;
-                that.SendWill(TelnetOption.Echo);
+                SendWill(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_ON));
                 break;
             case TelnetCommand.Dont:
                 FLocalEcho = false;
-                that.SendWont(TelnetOption.Echo);
+                SendWont(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_OFF));
                 break;
             case TelnetCommand.Will:
                 FLocalEcho = false;
-                that.SendDo(TelnetOption.Echo);
+                SendDo(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_OFF));
                 break;
             case TelnetCommand.Wont:
                 FLocalEcho = true;
-                that.SendDont(TelnetOption.Echo);
+                SendDont(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_ON));
                 break;
         }
     };
 
-    this.HandleTerminalType = function () {
-        that.SendWill(TelnetOption.TerminalType);
-        that.SendSubnegotiate(TelnetOption.TerminalType);
+    HandleTerminalType = function () {
+        SendWill(TelnetOption.TerminalType);
+        SendSubnegotiate(TelnetOption.TerminalType);
 
         var ToSendBytes = [];
         ToSendBytes.push(0); // IS
@@ -65,12 +94,12 @@ var TTelnetConnection = function () {
         }
         FWebSocket.send(new Uint8Array(ToSendBytes));
 
-        that.SendSubnegotiateEnd();
+        SendSubnegotiateEnd();
     };
 
-    this.HandleWindowSize = function () {
-        that.SendWill(TelnetOption.WindowSize);
-        that.SendSubnegotiate(TelnetOption.WindowSize);
+    HandleWindowSize = function () {
+        SendWill(TelnetOption.WindowSize);
+        SendSubnegotiate(TelnetOption.WindowSize);
 
         var Size = [];
         Size[0] = (FWindowSize.x >> 8) & 0xff;
@@ -85,30 +114,121 @@ var TTelnetConnection = function () {
         }
         FWebSocket.send(new Uint8Array(ToSendBytes));
 
-        that.SendSubnegotiateEnd();
+        SendSubnegotiateEnd();
     };
 
     this.__defineSetter__("LocalEcho", function (ALocalEcho) {
         FLocalEcho = ALocalEcho;
         if (that.connected) {
             if (FLocalEcho) {
-                that.SendWill(TelnetOption.Echo);
+                SendWill(TelnetOption.Echo);
             } else {
-                that.SendWont(TelnetOption.Echo);
+                SendWont(TelnetOption.Echo);
             }
         }
     });
 
+    this.NegotiateInboundTelnetConnection = function (AData) {
+        // Get any waiting data and handle negotiation
+        while (AData.bytesAvailable) {
+            var B = AData.readUnsignedByte();
+
+            if (FNegotiationState == TelnetNegotiationState.Data) {
+                if (B == TelnetCommand.IAC) {
+                    FNegotiationState = TelnetNegotiationState.IAC;
+                }
+                else {
+                    FInputBuffer.writeByte(B);
+                }
+            }
+            else if (FNegotiationState == TelnetNegotiationState.IAC) {
+                if (B == TelnetCommand.IAC) {
+                    FNegotiationState = TelnetNegotiationState.Data;
+                    FInputBuffer.writeByte(B);
+                }
+                else {
+                    switch (B) {
+                        case TelnetCommand.NoOperation:
+                        case TelnetCommand.DataMark:
+                        case TelnetCommand.Break:
+                        case TelnetCommand.InterruptProcess:
+                        case TelnetCommand.AbortOutput:
+                        case TelnetCommand.AreYouThere:
+                        case TelnetCommand.EraseCharacter:
+                        case TelnetCommand.EraseLine:
+                        case TelnetCommand.GoAhead:
+                            // We recognize, but ignore these for now
+                            FNegotiationState = TelnetNegotiationState.Data;
+                            break;
+                        case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
+                        case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
+                        case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
+                        case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
+                        default: FNegotiationState = TelnetNegotiationState.Data; break;
+                    }
+                }
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Do) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendWill(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
+                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
+                    case TelnetOption.TerminalType: HandleTerminalType(); break;
+                    case TelnetOption.WindowSize: HandleWindowSize(); break;
+                    case TelnetOption.LineMode: SendWont(B); break;
+                    default: SendWont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Dont) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendWill(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Dont); break;
+                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
+                    case TelnetOption.WindowSize: SendWont(B); break;
+                    case TelnetOption.LineMode: SendWont(B); break;
+                    default: SendWont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Will) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendDo(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Will); break;
+                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.WindowSize: SendDont(B); break;
+                    case TelnetOption.LineMode: SendDont(B); break;
+                    default: SendDont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Wont) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendDo(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Wont); break;
+                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.WindowSize: SendDont(B); break;
+                    case TelnetOption.LineMode: SendDont(B); break;
+                    default: SendDont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else {
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+        }
+    };
+
     // TODO Need NegotiateOutbound
 
-    this.SendCommand = function (ACommand) {
+    SendCommand = function (ACommand) {
         var ToSendBytes = [];
         ToSendBytes.push(TelnetCommand.IAC);
         ToSendBytes.push(ACommand);
         FWebSocket.send(new Uint8Array(ToSendBytes));
     };
 
-    this.SendDo = function (AOption) {
+    SendDo = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Do) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -122,7 +242,7 @@ var TTelnetConnection = function () {
         }
     };
 
-    this.SendDont = function (AOption) {
+    SendDont = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Dont) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -136,27 +256,27 @@ var TTelnetConnection = function () {
         }
     };
 
-    this.SendResponse = function (ACommand, AOption, ASetting) {
+    SendResponse = function (ACommand, AOption, ASetting) {
         if (ASetting) {
             // We want to do the option
             switch (ACommand) {
-                case TelnetCommand.Do: that.SendWill(AOption); break;
-                case TelnetCommand.Dont: that.SendWill(AOption); break;
-                case TelnetCommand.Will: that.SendDont(AOption); break;
-                case TelnetCommand.Wont: that.SendDont(AOption); break;
+                case TelnetCommand.Do: SendWill(AOption); break;
+                case TelnetCommand.Dont: SendWill(AOption); break;
+                case TelnetCommand.Will: SendDont(AOption); break;
+                case TelnetCommand.Wont: SendDont(AOption); break;
             }
         } else {
             // We don't want to do the option
             switch (ACommand) {
-                case TelnetCommand.Do: that.SendWont(AOption); break;
-                case TelnetCommand.Dont: that.SendWont(AOption); break;
-                case TelnetCommand.Will: that.SendDo(AOption); break;
-                case TelnetCommand.Wont: that.SendDo(AOption); break;
+                case TelnetCommand.Do: SendWont(AOption); break;
+                case TelnetCommand.Dont: SendWont(AOption); break;
+                case TelnetCommand.Will: SendDo(AOption); break;
+                case TelnetCommand.Wont: SendDo(AOption); break;
             }
         }
     };
 
-    this.SendSubnegotiate = function (AOption) {
+    SendSubnegotiate = function (AOption) {
         var ToSendBytes = [];
         ToSendBytes.push(TelnetCommand.IAC);
         ToSendBytes.push(TelnetCommand.Subnegotiation);
@@ -164,14 +284,14 @@ var TTelnetConnection = function () {
         FWebSocket.send(new Uint8Array(ToSendBytes));
     };
 
-    this.SendSubnegotiateEnd = function () {
+    SendSubnegotiateEnd = function () {
         var ToSendBytes = [];
         ToSendBytes.push(TelnetCommand.IAC);
         ToSendBytes.push(TelnetCommand.EndSubnegotiation);
         FWebSocket.send(new Uint8Array(ToSendBytes));
     };
 
-    this.SendWill = function (AOption) {
+    SendWill = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Will) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -185,7 +305,7 @@ var TTelnetConnection = function () {
         }
     };
 
-    this.SendWont = function (AOption) {
+    SendWont = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Wont) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -202,7 +322,7 @@ var TTelnetConnection = function () {
     this.__defineSetter__("WindowSize", function (AWindowSize) {
         FWindowSize = AWindowSize;
         if (FNegotiatedOptions[TelnetOption.WindowSize] == TelnetCommand.Will) {
-            that.HandleWindowSize();
+            HandleWindowSize();
         }
     });
 
@@ -220,111 +340,9 @@ TTelnetConnection.prototype = new TTcpConnectionSurrogate();
 TTelnetConnection.prototype.constructor = TTelnetConnection;
 
 TTelnetConnection.prototype.flush = function () {
-    var that = this;
-    var ToSendString = FOutputBuffer.toString();
-    var ToSendBytes = [];
-
-    // Read 1 byte at a time, doubling up IAC's as necessary
-    for (i = 0; i < ToSendString.length; i++) {
-        ToSendBytes.push(ToSendString.charCodeAt(i));
-        if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
-            ToSendBytes.push(TelnetCommand.IAC);
-        }
-    }
-
-    FWebSocket.send(new Uint8Array(ToSendBytes));
-    FOutputBuffer.clear();
-};
+    this.flushTelnetConnection();
+}
 
 TTelnetConnection.prototype.NegotiateInbound = function (AData) {
-    var that = this;
-
-    // Get any waiting data and handle negotiation
-    while (AData.bytesAvailable) {
-        var B = AData.readUnsignedByte();
-
-        if (FNegotiationState == TelnetNegotiationState.Data) {
-            if (B == TelnetCommand.IAC) {
-                FNegotiationState = TelnetNegotiationState.IAC;
-            }
-            else {
-                FInputBuffer.writeByte(B);
-            }
-        }
-        else if (FNegotiationState == TelnetNegotiationState.IAC) {
-            if (B == TelnetCommand.IAC) {
-                FNegotiationState = TelnetNegotiationState.Data;
-                FInputBuffer.writeByte(B);
-            }
-            else {
-                switch (B) {
-                    case TelnetCommand.NoOperation:
-                    case TelnetCommand.DataMark:
-                    case TelnetCommand.Break:
-                    case TelnetCommand.InterruptProcess:
-                    case TelnetCommand.AbortOutput:
-                    case TelnetCommand.AreYouThere:
-                    case TelnetCommand.EraseCharacter:
-                    case TelnetCommand.EraseLine:
-                    case TelnetCommand.GoAhead:
-                        // We recognize, but ignore these for now
-                        FNegotiationState = TelnetNegotiationState.Data;
-                        break;
-                    case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
-                    case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
-                    case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
-                    case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
-                    default: FNegotiationState = TelnetNegotiationState.Data; break;
-                }
-            }
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Do) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendWill(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Do); break;
-                case TelnetOption.SuppressGoAhead: that.SendWill(B); break;
-                case TelnetOption.TerminalType: that.HandleTerminalType(); break;
-                case TelnetOption.WindowSize: that.HandleWindowSize(); break;
-                case TelnetOption.LineMode: that.SendWont(B); break;
-                default: that.SendWont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Dont) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendWill(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Dont); break;
-                case TelnetOption.SuppressGoAhead: that.SendWill(B); break;
-                case TelnetOption.WindowSize: that.SendWont(B); break;
-                case TelnetOption.LineMode: that.SendWont(B); break;
-                default: that.SendWont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Will) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendDo(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Will); break;
-                case TelnetOption.SuppressGoAhead: that.SendDo(B); break;
-                case TelnetOption.WindowSize: that.SendDont(B); break;
-                case TelnetOption.LineMode: that.SendDont(B); break;
-                default: that.SendDont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Wont) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendDo(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Wont); break;
-                case TelnetOption.SuppressGoAhead: that.SendDo(B); break;
-                case TelnetOption.WindowSize: that.SendDont(B); break;
-                case TelnetOption.LineMode: that.SendDont(B); break;
-                default: that.SendDont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else {
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-    }
-};
+    this.NegotiateInboundTelnetConnection(AData);
+}
