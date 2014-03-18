@@ -2459,13 +2459,13 @@ var TCrt = function () {
         }
     };
 
-    // TODO This doesn't match Crt.as -- which is correct?
     this.RestoreScreen = function (ABuffer, ALeft, ATop, ARight, ABottom) {
-        var X;
-        var Y;
-        for (Y = ATop; Y <= ABottom; Y++) {
-            for (X = ALeft; X <= ARight; X++) {
-                that.FastWrite(ABuffer[Y][X].Ch, X, Y, ABuffer[Y][X]);
+        var Height = ABottom - ATop + 1;
+        var Width = ARight - ALeft + 1;
+        for (var Y = 0; Y < Height; Y++) {
+            for (var X = 0; X < Width; X++) {
+                trace("Restoring: " + ABuffer[Y][X].Ch + " to " + ALeft + ":" + ATop);
+                that.FastWrite(ABuffer[Y][X].Ch, X + ALeft, Y + ATop, ABuffer[Y][X]);
             }
         }
     };
@@ -2477,19 +2477,18 @@ var TCrt = function () {
         that.TextAttr = ((that.TextAttr & 0xF0) >> 4) | ((that.TextAttr & 0x0F) << 4);
     };
 
-    // TODO This doesn't match Crt.as -- which is correct?
     this.SaveScreen = function (ALeft, ATop, ARight, ABottom) {
+        var Height = ABottom - ATop + 1;
+        var Width = ARight - ALeft + 1;
         var Result = [];
-        Result.InitTwoDimensions(FScreenSize.y, FScreenSize.x);
 
-        var X;
-        var Y;
-        for (Y = ATop; Y <= ABottom; Y++) {
-            for (X = ALeft; X <= ARight; X++) {
-                Result[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
+        for (var Y = 0; Y < Height; Y++) {
+            Result[Y] = [];
+            for (var X = 0; X < Width; X++) {
+                Result[Y][X] = new TCharInfo(FBuffer[Y + ATop][X + ALeft].Ch, FBuffer[Y + ATop][X + ALeft].Attr, FBuffer[Y + ATop][X + ALeft].Blink, FBuffer[Y + ATop][X + ALeft].Underline, FBuffer[Y + ATop][X + ALeft].Reversed);
             }
         }
-
+			
         return Result;
     };
 
@@ -3554,7 +3553,6 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     var FWidth;
 
     // Private methods
-    var Paint = function (AForce) { }; // Do nothing
     var RestoreBackground = function () { }; // Do nothing
     var SaveBackground = function () { }; // Do nothing
 
@@ -3569,7 +3567,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     this.__defineSetter__("BackColour", function (ABackColour) {
         if (ABackColour !== FBackColour) {
             FBackColour = ABackColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -3580,7 +3578,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     this.__defineSetter__("ForeColour", function (AForeColour) {
         if (AForeColour !== FForeColour) {
             FForeColour = AForeColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -3593,7 +3591,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FHeight = AHeight;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -3612,17 +3610,13 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FLeft = ALeft;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
 
             for (i = 0; i < FControls.length; i++) {
                 FControls[i].Paint(true);
             }
         }
     });
-
-    Paint = function (AForce) {
-        // Override in extended class
-    };
 
     this.__defineGetter__("Parent", function () {
         return FParent;
@@ -3632,15 +3626,31 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
         RestoreBackground();
         FParent = AParent;
         SaveBackground();
-        Paint(true);
+        that.Paint(true);
     });
 
     RestoreBackground = function () {
-        Crt.RestoreScreen(FBackground, FLeft, FTop, FLeft + FWidth - 1, FTop + FHeight - 1);
+        var Left = FLeft;
+        var Top = FTop;
+        var P = FParent;
+        while (P != null) {
+            Left += P.Left;
+            Top += P.Top;
+            P = P.FParent;
+        }
+        Crt.RestoreScreen(FBackground, Left, Top, Left + FWidth - 1, Top + FHeight - 1);
     };
 
     SaveBackground = function () {
-        FBackground = Crt.SaveScreen(FLeft, FTop, FLeft + FWidth - 1, FTop + FHeight - 1);
+        var Left = FLeft;
+        var Top = FTop;
+        var P = FParent;
+        while (P != null) {
+            Left += P.Left;
+            Top += P.Top;
+            P = P.FParent;
+        }
+        FBackground = Crt.SaveScreen(Left, Top, Left + FWidth - 1, Top + FHeight - 1);
     };
 
     this.__defineGetter__("ScreenLeft", function () {
@@ -3652,7 +3662,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     });
 
     this.Show = function () {
-        Paint(true);
+        that.Paint(true);
 
         var i;
         for (i = 0; i < FControls.length; i++) {
@@ -3669,7 +3679,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FTop = ATop;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
 
             var i;
             for (i = 0; i < FControls.length; i++) {
@@ -3687,7 +3697,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FWidth = AWidth;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -3706,7 +3716,12 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
 };
 
 var TCrtControlSurrogate = function () { };
-TCrtControlSurrogate.prototype = TCrtControl.prototype;/*
+TCrtControlSurrogate.prototype = TCrtControl.prototype;
+
+TCrtControl.prototype.Paint = function (AForce) {
+    // Override in extended class
+};
+/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -3731,10 +3746,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     var FText = "";
     var FTextAlign;
 
-    // Private methods
-    var Paint = function (AForce) { }; // Do nothing
-
-    Paint = function (AForce) {
+    this.DoPaint = function (AForce) {
         // Draw the message
         switch (FTextAlign) {
             case ContentAlignment.Center:
@@ -3770,7 +3782,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
 
     this.__defineSetter__("Text", function (AText) {
         FText = AText;
-        Paint(true);
+        that.Paint(true);
     });
 
     this.__defineGetter__("TextAlign", function () {
@@ -3780,7 +3792,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     this.__defineSetter__("TextAlign", function (ATextAlign) {
         if (ATextAlign !== FTextAlign) {
             FTextAlign = ATextAlign;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -3792,11 +3804,15 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     that.ForeColour = AForeColour;
     that.BackColour = ABackColour;
 
-    Paint(true);
+    that.Paint(true);
 };
 
 TCrtLabel.prototype = new TCrtControlSurrogate();
-TCrtLabel.prototype.constructor = TCrtLabel;/*
+TCrtLabel.prototype.constructor = TCrtLabel;
+
+TCrtLabel.prototype.Paint = function (AForce) {
+    this.DoPaint();
+};/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -3821,9 +3837,6 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     var FText = "";
     var FTextAlign;
 
-    // Private methods
-    var Paint = function (AForce) { }; // Do nothing
-
     this.__defineGetter__("Border", function () {
         return FBorder;
     });
@@ -3831,11 +3844,11 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     this.__defineSetter__("Border", function (ABorder) {
         if (ABorder !== FBorder) {
             FBorder = ABorder;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
-    Paint = function (AForce) {
+    this.DoPaint = function (AForce) {
         // Characters for the box
         var Line;
         var TopLeft;
@@ -3947,7 +3960,7 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
 
     this.__defineSetter__("Text", function (AText) {
         FText = AText;
-        Paint(true);
+        that.Paint(true);
     });
 
     this.__defineGetter__("TextAlign", function () {
@@ -3957,7 +3970,7 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     this.__defineSetter__("TextAlign", function (ATextAlign) {
         if (ATextAlign !== FTextAlign) {
             FTextAlign = ATextAlign;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -3970,11 +3983,15 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     FText = AText;
     FTextAlign = ATextAlign;
 
-    Paint(true);
+    that.Paint(true);
 };
 
 TCrtPanel.prototype = new TCrtControlSurrogate();
-TCrtPanel.prototype.constructor = TCrtPanel;/*
+TCrtPanel.prototype.constructor = TCrtPanel;
+
+TCrtPanel.prototype.Paint = function (AForce) {
+    this.DoPaint();
+};/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -4007,9 +4024,6 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
     var FStyle;
     var FValue;
 
-    // Private methods
-    var Paint = function (AForce) { }; // Do nothing
-		
     this.__defineGetter__("BarForeColour", function () {
         return FBarForeColour;
     });
@@ -4018,7 +4032,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (ABarForeColour !== FBarForeColour)
         {
             FBarForeColour = ABarForeColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
@@ -4030,10 +4044,90 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (ABlankForeColour !== FBlankForeColour)
         {
             FBlankForeColour = ABlankForeColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
+    /// <summary>
+    /// Re-Draw the bar and percent text.
+    /// </summary>
+    /// <param name="AForce">When true, the bar and percent will always be Paintn.  When false, the bar and percent will only be Paintn as necessary, which reduces the number of unnecessary Paints (especially when a large maximum is used)</param>
+    this.DoPaint = function (AForce) {
+        if (FStyle === ProgressBarStyle.Marquee) {
+            if (AForce) {
+                // Erase the old bar
+                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+            }
+
+            // Draw the new bar
+            if (FValue > 0) {
+                if (FValue > that.Width) {
+                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + that.Width - (15 - Math.floor(FValue - that.Width)), that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                }
+                else if (FValue >= 15) {
+                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
+                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                }
+                else {
+                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
+                }
+            }
+        }
+        else {
+            // Check if we're forcing an update (probably due to a change in Left, Top, Width, etc)
+            if (AForce) {
+                // Yep, so reset the "Last" variables
+                FLastBarWidth = 9999;
+                FLastPercentText = "";
+            }
+
+            var PaintPercentText = false;
+            var Percent = FValue / FMaximum;
+            var NewBarWidth = Math.floor(Percent * that.Width);
+            if (NewBarWidth !== FLastBarWidth) {
+                // Check if the bar shrank (if so, we need to delete the old bar)
+                if (NewBarWidth < FLastBarWidth) {
+                    // Erase the old bar
+                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                }
+
+                // Draw the new bar
+                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(FStyle), NewBarWidth), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
+
+                FLastBarWidth = NewBarWidth;
+                PaintPercentText = true;
+            }
+
+            // Draw the percentage
+            if (FPercentVisible) {
+                var NewPercentText = StringUtils.FormatPercent(Percent, FPercentPrecision);
+                if ((NewPercentText !== FLastPercentText) || (PaintPercentText)) {
+                    FLastPercentText = NewPercentText;
+
+                    var ProgressStart = Math.round((that.Width - NewPercentText.length) / 2);
+                    if (ProgressStart >= NewBarWidth) {
+                        // Bar hasn't reached the percent text, so draw in the bar's empty color
+                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                    }
+                    else if (ProgressStart + NewPercentText.length <= NewBarWidth) {
+                        // Bar has passed the percent text, so draw in the bar's foreground colour (or still use background for Blocks)
+                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", that.BackColour + (FBarForeColour << 4)));
+                    }
+                    else {
+                        // Bar is in the middle of the percent text, so draw the colour as necessary for each letter in the text
+                        var i;
+                        for (i = 0; i < NewPercentText.length; i++) {
+                            var LetterPosition = ProgressStart + i;
+                            var FG = (LetterPosition >= NewBarWidth) ? FBlankForeColour : that.BackColour;
+                            var BG = (LetterPosition >= NewBarWidth) ? that.BackColour : FBarForeColour;
+                            Crt.FastWrite(NewPercentText.charAt(i), that.ScreenLeft + LetterPosition, that.ScreenTop, new TCharInfo(" ", FG + (BG << 4)));
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     this.__defineGetter__("MarqueeAnimationSpeed", function () {
         return FMarqueeAnimationSpeed;
     });
@@ -4053,105 +4147,9 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
             if (FValue > FMaximum) {
                 FValue = FMaximum;
             }
-            Paint(true);
+            that.Paint(true);
         }
     });
-		
-    /// <summary>
-    /// Re-Draw the bar and percent text.
-    /// </summary>
-    /// <param name="AForce">When true, the bar and percent will always be Paintn.  When false, the bar and percent will only be Paintn as necessary, which reduces the number of unnecessary Paints (especially when a large maximum is used)</param>
-    Paint = function (AForce) {
-        if (FStyle === ProgressBarStyle.Marquee)
-        {
-            if (AForce)
-            {
-                // Erase the old bar
-                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-            }
-				
-            // Draw the new bar
-            if (FValue > 0)
-            {
-                if (FValue > that.Width)
-                {
-                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + that.Width - (15 - Math.floor(FValue - that.Width)), that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                }
-                else if (FValue >= 15)
-                {
-                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
-                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                }
-                else
-                {
-                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
-                }
-            }
-        }
-        else
-        {
-            // Check if we're forcing an update (probably due to a change in Left, Top, Width, etc)
-            if (AForce)
-            {
-                // Yep, so reset the "Last" variables
-                FLastBarWidth = 9999;
-                FLastPercentText = "";
-            }
-				
-            var PaintPercentText = false;
-            var Percent = FValue / FMaximum;
-            var NewBarWidth = Math.floor(Percent * that.Width);
-            if (NewBarWidth !== FLastBarWidth)
-            {
-                // Check if the bar shrank (if so, we need to delete the old bar)
-                if (NewBarWidth < FLastBarWidth)
-                {
-                    // Erase the old bar
-                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                }
-					
-                // Draw the new bar
-                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(FStyle), NewBarWidth), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
-					
-                FLastBarWidth = NewBarWidth;
-                PaintPercentText = true;
-            }
-				
-            // Draw the percentage
-            if (FPercentVisible)
-            {
-                var NewPercentText = StringUtils.FormatPercent(Percent, FPercentPrecision);
-                if ((NewPercentText !== FLastPercentText) || (PaintPercentText))
-                {
-                    FLastPercentText = NewPercentText;
-						
-                    var ProgressStart = Math.round((that.Width - NewPercentText.length) / 2);
-                    if (ProgressStart >= NewBarWidth)
-                    {
-                        // Bar hasn't reached the percent text, so draw in the bar's empty color
-                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                    }
-                    else if (ProgressStart + NewPercentText.length <= NewBarWidth)
-                    {
-                        // Bar has passed the percent text, so draw in the bar's foreground colour (or still use background for Blocks)
-                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", that.BackColour + (FBarForeColour << 4)));
-                    }
-                    else
-                    {
-                        // Bar is in the middle of the percent text, so draw the colour as necessary for each letter in the text
-                        var i;
-                        for (i = 0; i < NewPercentText.length; i++)
-                        {
-                            var LetterPosition = ProgressStart + i;
-                            var FG = (LetterPosition >= NewBarWidth) ? FBlankForeColour : that.BackColour;
-                            var BG = (LetterPosition >= NewBarWidth) ? that.BackColour : FBarForeColour;
-                            Crt.FastWrite(NewPercentText.charAt(i), that.ScreenLeft + LetterPosition, that.ScreenTop, new TCharInfo(" ", FG + (BG << 4)));
-                        }
-                    }
-                }
-            }
-        }
-    };
 		
     this.__defineGetter__("PercentPrecision", function () {
         return FPercentPrecision;
@@ -4161,7 +4159,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (APercentPrecision !== FPercentPrecision)
         {
             FPercentPrecision = APercentPrecision;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
@@ -4173,7 +4171,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (APercentVisible !== FPercentVisible)
         {
             FPercentVisible = APercentVisible;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
@@ -4193,7 +4191,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (AStyle !== FStyle)
         {
             FStyle = AStyle;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -4216,7 +4214,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
                         AValue = 0;
                     }
                     FValue = AValue;
-                    Paint(false);
+                    that.Paint(false);
                     FLastMarqueeUpdate = new Date();
                 }
             }
@@ -4224,7 +4222,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
             {
                 // Keep value between 0 and Maximum
                 FValue = Math.max(0, Math.min(AValue, FMaximum));
-                Paint(false);
+                that.Paint(false);
             }
         }
     });
@@ -4244,11 +4242,15 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
     FPercentVisible = true;
     FValue = 0;
 			
-    Paint(true);
+    that.Paint(true);
 };
 
 TCrtProgressBar.prototype = new TCrtControlSurrogate();
-TCrtProgressBar.prototype.constructor = TCrtProgressBar;/*
+TCrtProgressBar.prototype.constructor = TCrtProgressBar;
+
+TCrtProgressBar.prototype.Paint = function (AForce) {
+    this.DoPaint();
+};/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -4795,18 +4797,10 @@ var TTcpConnection = function () {
 
     // Private variables
     var that = this;
-    var FWasConnected = false;
-
-    // Protected variables
     this.FInputBuffer = null;
     this.FOutputBuffer;
+    this.FWasConnected = false;
     this.FWebSocket = null;
-
-    // Private methods
-    var OnSocketClose = function () { }; // Do nothing
-    var OnSocketError = function (e) { }; // Do nothing
-    var OnSocketOpen = function () { }; // Do nothing
-    var OnSocketMessage = function (e) { }; // Do nothing
 
     this.__defineGetter__("bytesAvailable", function () {
         return FInputBuffer.bytesAvailable;
@@ -4826,10 +4820,10 @@ var TTcpConnection = function () {
         FWebSocket.binaryType = 'arraybuffer';
 
         // Set event handlers
-        FWebSocket.onclose = OnSocketClose;
-        FWebSocket.onerror = OnSocketError;
-        FWebSocket.onmessage = OnSocketMessage;
-        FWebSocket.onopen = OnSocketOpen;
+        FWebSocket.onclose = that.OnSocketClose;
+        FWebSocket.onerror = that.OnSocketError;
+        FWebSocket.onmessage = that.OnSocketMessage;
+        FWebSocket.onopen = that.OnSocketOpen;
     };
 
     this.__defineGetter__("connected", function () {
@@ -4840,7 +4834,7 @@ var TTcpConnection = function () {
         return false;
     });
 
-    OnSocketClose = function () {
+    this.OnSocketClose = function () {
         if (FWasConnected) {
             that.onclose();
         } else {
@@ -4849,16 +4843,16 @@ var TTcpConnection = function () {
         FWasConnected = false;
     };
 
-    OnSocketError = function (e) {
+    this.OnSocketError = function (e) {
         that.onioerror(e);
     };
 
-    OnSocketOpen = function () {
+    this.OnSocketOpen = function () {
         FWasConnected = true;
         that.onconnect();
     };
 
-    OnSocketMessage = function (e) {
+    this.OnSocketMessage = function (e) {
         // Free up some memory if we're at the end of the buffer
         if (FInputBuffer.bytesAvailable === 0) { FInputBuffer.clear(); }
 
@@ -4879,7 +4873,7 @@ var TTcpConnection = function () {
         }
         Data.position = 0;
 
-        NegotiateInbound(Data);
+        that.NegotiateInbound(Data);
 
         // Restore the old buffer position
         FInputBuffer.position = OldPosition;
@@ -5026,7 +5020,27 @@ var TTcpConnection = function () {
 };
 
 var TTcpConnectionSurrogate = function () { };
-TTcpConnectionSurrogate.prototype = TTcpConnection.prototype;/*
+TTcpConnectionSurrogate.prototype = TTcpConnection.prototype;
+
+TTcpConnection.prototype.flush = function () {
+    var ToSendString = FOutputBuffer.toString();
+    var ToSendBytes = [];
+
+    for (i = 0; i < ToSendString.length; i++) {
+        ToSendBytes.push(ToSendString.charCodeAt(i));
+    }
+
+    FWebSocket.send(new Uint8Array(ToSendBytes));
+    FOutputBuffer.clear();
+};
+
+TTcpConnection.prototype.NegotiateInbound = function (AData) {
+    // No negotiation for raw tcp connection
+    while (AData.bytesAvailable) {
+        var B = AData.readUnsignedByte();
+        FInputBuffer.writeByte(B);
+    }
+};/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -5319,326 +5333,316 @@ TelnetOption = new TTelnetOption();/*
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
 var TTelnetConnection = function () {
-	// TODO Event to let htmlterm to know to enable or disable echo
-	//public static const ECHO_OFF: String = "EchoOff";
-	//public static const ECHO_ON: String = "EchoOn";
+    // TODO Event to let htmlterm to know to enable or disable echo
+    //public static const ECHO_OFF: String = "EchoOff";
+    //public static const ECHO_ON: String = "EchoOn";
 
-	// Private variables
-	var that = this;
-	var FNegotiatedOptions;
-	var FNegotiationState;
+    // Private variables
+    var that = this;
+    this.FNegotiatedOptions;
+    this.FNegotiationState;
 
-	// Private methods
-	var HandleEcho = function (ACommand) { }; // Do nothing
-	var HandleTerminalType = function () { }; // Do nothing
-	var HandleWindowSize = function () { }; // Do nothing
-	var SendCommand = function (ACommand) { }; // Do nothing
-	var SendDo = function (AOption) { }; // Do nothing
-	var SendDont = function (AOption) { }; // Do nothing
-	var SendResponse = function (ACommand, AOption, ASetting) { }; // Do nothing
-	var SendSubnegotiate = function (AOption) { }; // Do nothing
-	var SendSubnegotiateEnd = function () { }; // Do nothing
-	var SendWill = function (AOption) { }; // Do nothing
-	var SendWont = function (AOption) { }; // Do nothing
+    this.HandleEcho = function (ACommand) {
+        switch (ACommand) {
+            case TelnetCommand.Do:
+                FLocalEcho = true;
+                that.SendWill(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_ON));
+                break;
+            case TelnetCommand.Dont:
+                FLocalEcho = false;
+                that.SendWont(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_OFF));
+                break;
+            case TelnetCommand.Will:
+                FLocalEcho = false;
+                that.SendDo(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_OFF));
+                break;
+            case TelnetCommand.Wont:
+                FLocalEcho = true;
+                that.SendDont(TelnetOption.Echo);
+                //TODO dispatchEvent(new Event(ECHO_ON));
+                break;
+        }
+    };
 
-	this.flush = function () {
-		var ToSendString = FOutputBuffer.toString();
-		var ToSendBytes = [];
+    this.HandleTerminalType = function () {
+        that.SendWill(TelnetOption.TerminalType);
+        that.SendSubnegotiate(TelnetOption.TerminalType);
 
-		// Read 1 byte at a time, doubling up IAC's as necessary
-		for (i = 0; i < ToSendString.length; i++) {
-			ToSendBytes.push(ToSendString.charCodeAt(i));
-			if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
-				ToSendBytes.push(TelnetCommand.IAC);
-			}
-		}
+        var ToSendBytes = [];
+        ToSendBytes.push(0); // IS
 
-		FWebSocket.send(new Uint8Array(ToSendBytes));
-		FOutputBuffer.clear();
-	};
+        var TerminalType = "DEC-VT100"; // TODO
+        for (var i = 0; i < TerminalType.length; i++) {
+            ToSendBytes.push(TerminalType.charCodeAt(i));
+        }
+        FWebSocket.send(new Uint8Array(ToSendBytes));
 
-	HandleEcho = function (ACommand) {
-		switch (ACommand) {
-			case TelnetCommand.Do:
-				FLocalEcho = true;
-				SendWill(TelnetOption.Echo);
-				//TODO dispatchEvent(new Event(ECHO_ON));
-				break;
-			case TelnetCommand.Dont:
-				FLocalEcho = false;
-				SendWont(TelnetOption.Echo);
-				//TODO dispatchEvent(new Event(ECHO_OFF));
-				break;
-			case TelnetCommand.Will:
-				FLocalEcho = false;
-				SendDo(TelnetOption.Echo);
-				//TODO dispatchEvent(new Event(ECHO_OFF));
-				break;
-			case TelnetCommand.Wont:
-				FLocalEcho = true;
-				SendDont(TelnetOption.Echo);
-				//TODO dispatchEvent(new Event(ECHO_ON));
-				break;
-		}
-	};
+        that.SendSubnegotiateEnd();
+    };
 
-	HandleTerminalType = function () {
-		SendWill(TelnetOption.TerminalType);
-		SendSubnegotiate(TelnetOption.TerminalType);
+    this.HandleWindowSize = function () {
+        that.SendWill(TelnetOption.WindowSize);
+        that.SendSubnegotiate(TelnetOption.WindowSize);
 
-		var ToSendBytes = [];
-		ToSendBytes.push(0); // IS
+        var Size = [];
+        Size[0] = (FWindowSize.x >> 8) & 0xff;
+        Size[1] = FWindowSize.x & 0xff;
+        Size[2] = (FWindowSize.y >> 8) & 0xff;
+        Size[3] = FWindowSize.y & 0xff;
 
-		var TerminalType = "DEC-VT100"; // TODO
-		for (var i = 0; i < TerminalType.length; i++) {
-			ToSendBytes.push(TerminalType.charCodeAt(i));
-		}
-		FWebSocket.send(new Uint8Array(ToSendBytes));
+        var ToSendBytes = [];
+        for (var i = 0; i < Size.length; i++) {
+            ToSendBytes.push(Size[i]);
+            if (Size[i] == TelnetCommand.IAC) ToSendBytes.push(TelnetCommand.IAC); // Double up so it's not treated as an IAC
+        }
+        FWebSocket.send(new Uint8Array(ToSendBytes));
 
-		SendSubnegotiateEnd();
-	};
+        that.SendSubnegotiateEnd();
+    };
 
-	HandleWindowSize = function () {
-		SendWill(TelnetOption.WindowSize);
-		SendSubnegotiate(TelnetOption.WindowSize);
+    this.__defineSetter__("LocalEcho", function (ALocalEcho) {
+        FLocalEcho = ALocalEcho;
+        if (that.connected) {
+            if (FLocalEcho) {
+                that.SendWill(TelnetOption.Echo);
+            } else {
+                that.SendWont(TelnetOption.Echo);
+            }
+        }
+    });
 
-		var Size = [];
-		Size[0] = (FWindowSize.x >> 8) & 0xff;
-		Size[1] = FWindowSize.x & 0xff;
-		Size[2] = (FWindowSize.y >> 8) & 0xff;
-		Size[3] = FWindowSize.y & 0xff;
+    // TODO Need NegotiateOutbound
 
-		var ToSendBytes = [];
-		for (var i = 0; i < Size.length; i++) {
-			ToSendBytes.push(Size[i]);
-			if (Size[i] == TelnetCommand.IAC) ToSendBytes.push(TelnetCommand.IAC); // Double up so it's not treated as an IAC
-		}
-		FWebSocket.send(new Uint8Array(ToSendBytes));
+    this.SendCommand = function (ACommand) {
+        var ToSendBytes = [];
+        ToSendBytes.push(TelnetCommand.IAC);
+        ToSendBytes.push(ACommand);
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+    };
 
-		SendSubnegotiateEnd();
-	};
+    this.SendDo = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Do) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Do;
 
-	this.__defineSetter__("LocalEcho", function (ALocalEcho) {
-		FLocalEcho = ALocalEcho;
-		if (that.connected) {
-			if (FLocalEcho) {
-				SendWill(TelnetOption.Echo);
-			} else {
-				SendWont(TelnetOption.Echo);
-			}
-		}
-	});
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Do);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
 
-	NegotiateInbound = function (AData) {
-		// Get any waiting data and handle negotiation
-		while (AData.bytesAvailable) {
-			var B = AData.readUnsignedByte();
+    this.SendDont = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Dont) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Dont;
 
-			if (FNegotiationState == TelnetNegotiationState.Data) {
-				if (B == TelnetCommand.IAC) {
-					FNegotiationState = TelnetNegotiationState.IAC;
-				}
-				else {
-				    FInputBuffer.writeByte(B);
-                }
-			}
-			else if (FNegotiationState == TelnetNegotiationState.IAC) {
-				if (B == TelnetCommand.IAC) {
-					FNegotiationState = TelnetNegotiationState.Data;
-					FInputBuffer.writeByte(B);
-                }
-				else {
-					switch (B) {
-						case TelnetCommand.NoOperation:
-						case TelnetCommand.DataMark:
-						case TelnetCommand.Break:
-						case TelnetCommand.InterruptProcess:
-						case TelnetCommand.AbortOutput:
-						case TelnetCommand.AreYouThere:
-						case TelnetCommand.EraseCharacter:
-						case TelnetCommand.EraseLine:
-						case TelnetCommand.GoAhead:
-							// We recognize, but ignore these for now
-							FNegotiationState = TelnetNegotiationState.Data;
-							break;
-						case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
-						case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
-						case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
-						case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
-						default: FNegotiationState = TelnetNegotiationState.Data; break;
-					}
-				}
-			}
-			else if (FNegotiationState == TelnetNegotiationState.Do) {
-				switch (B) {
-					case TelnetOption.TransmitBinary: SendWill(B); break;
-					case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
-					case TelnetOption.SuppressGoAhead: SendWill(B); break;
-					case TelnetOption.TerminalType: HandleTerminalType(); break;
-					case TelnetOption.WindowSize: HandleWindowSize(); break;
-					case TelnetOption.LineMode: SendWont(B); break;
-					default: SendWont(B); break;
-				}
-				FNegotiationState = TelnetNegotiationState.Data;
-			}
-			else if (FNegotiationState == TelnetNegotiationState.Dont) {
-				switch (B) {
-					case TelnetOption.TransmitBinary: SendWill(B); break;
-					case TelnetOption.Echo: HandleEcho(TelnetCommand.Dont); break;
-					case TelnetOption.SuppressGoAhead: SendWill(B); break;
-					case TelnetOption.WindowSize: SendWont(B); break;
-					case TelnetOption.LineMode: SendWont(B); break;
-					default: SendWont(B); break;
-				}
-				FNegotiationState = TelnetNegotiationState.Data;
-			}
-			else if (FNegotiationState == TelnetNegotiationState.Will) {
-				switch (B) {
-					case TelnetOption.TransmitBinary: SendDo(B); break;
-					case TelnetOption.Echo: HandleEcho(TelnetCommand.Will); break;
-					case TelnetOption.SuppressGoAhead: SendDo(B); break;
-					case TelnetOption.WindowSize: SendDont(B); break;
-					case TelnetOption.LineMode: SendDont(B); break;
-					default: SendDont(B); break;
-				}
-				FNegotiationState = TelnetNegotiationState.Data;
-			}
-			else if (FNegotiationState == TelnetNegotiationState.Wont) {
-				switch (B) {
-					case TelnetOption.TransmitBinary: SendDo(B); break;
-					case TelnetOption.Echo: HandleEcho(TelnetCommand.Wont); break;
-					case TelnetOption.SuppressGoAhead: SendDo(B); break;
-					case TelnetOption.WindowSize: SendDont(B); break;
-					case TelnetOption.LineMode: SendDont(B); break;
-					default: SendDont(B); break;
-				}
-				FNegotiationState = TelnetNegotiationState.Data;
-			}
-			else {
-				FNegotiationState = TelnetNegotiationState.Data;
-			}
-		}
-	};
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Dont);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
 
-	// TODO Need NegotiateOutbound
+    this.SendResponse = function (ACommand, AOption, ASetting) {
+        if (ASetting) {
+            // We want to do the option
+            switch (ACommand) {
+                case TelnetCommand.Do: that.SendWill(AOption); break;
+                case TelnetCommand.Dont: that.SendWill(AOption); break;
+                case TelnetCommand.Will: that.SendDont(AOption); break;
+                case TelnetCommand.Wont: that.SendDont(AOption); break;
+            }
+        } else {
+            // We don't want to do the option
+            switch (ACommand) {
+                case TelnetCommand.Do: that.SendWont(AOption); break;
+                case TelnetCommand.Dont: that.SendWont(AOption); break;
+                case TelnetCommand.Will: that.SendDo(AOption); break;
+                case TelnetCommand.Wont: that.SendDo(AOption); break;
+            }
+        }
+    };
 
-	SendCommand = function (ACommand) {
-		var ToSendBytes = [];
-		ToSendBytes.push(TelnetCommand.IAC);
-		ToSendBytes.push(ACommand);
-		FWebSocket.send(new Uint8Array(ToSendBytes));
-	};
+    this.SendSubnegotiate = function (AOption) {
+        var ToSendBytes = [];
+        ToSendBytes.push(TelnetCommand.IAC);
+        ToSendBytes.push(TelnetCommand.Subnegotiation);
+        ToSendBytes.push(AOption);
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+    };
 
-	SendDo = function (AOption) {
-		if (FNegotiatedOptions[AOption] == TelnetCommand.Do) {
-			// Already negotiated this option, don't go into a negotiation storm!
-		} else {
-			FNegotiatedOptions[AOption] = TelnetCommand.Do;
+    this.SendSubnegotiateEnd = function () {
+        var ToSendBytes = [];
+        ToSendBytes.push(TelnetCommand.IAC);
+        ToSendBytes.push(TelnetCommand.EndSubnegotiation);
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+    };
 
-			var ToSendBytes = [];
-			ToSendBytes.push(TelnetCommand.IAC);
-			ToSendBytes.push(TelnetCommand.Do);
-			ToSendBytes.push(AOption);
-			FWebSocket.send(new Uint8Array(ToSendBytes));
-		}
-	};
+    this.SendWill = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Will) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Will;
 
-	SendDont = function (AOption) {
-		if (FNegotiatedOptions[AOption] == TelnetCommand.Dont) {
-			// Already negotiated this option, don't go into a negotiation storm!
-		} else {
-			FNegotiatedOptions[AOption] = TelnetCommand.Dont;
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Will);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
 
-			var ToSendBytes = [];
-			ToSendBytes.push(TelnetCommand.IAC);
-			ToSendBytes.push(TelnetCommand.Dont);
-			ToSendBytes.push(AOption);
-			FWebSocket.send(new Uint8Array(ToSendBytes));
-		}
-	};
+    this.SendWont = function (AOption) {
+        if (FNegotiatedOptions[AOption] == TelnetCommand.Wont) {
+            // Already negotiated this option, don't go into a negotiation storm!
+        } else {
+            FNegotiatedOptions[AOption] = TelnetCommand.Wont;
 
-	SendResponse = function (ACommand, AOption, ASetting) {
-		if (ASetting) {
-			// We want to do the option
-			switch (ACommand) {
-				case TelnetCommand.Do: SendWill(AOption); break;
-				case TelnetCommand.Dont: SendWill(AOption); break;
-				case TelnetCommand.Will: SendDont(AOption); break;
-				case TelnetCommand.Wont: SendDont(AOption); break;
-			}
-		} else {
-			// We don't want to do the option
-			switch (ACommand) {
-				case TelnetCommand.Do: SendWont(AOption); break;
-				case TelnetCommand.Dont: SendWont(AOption); break;
-				case TelnetCommand.Will: SendDo(AOption); break;
-				case TelnetCommand.Wont: SendDo(AOption); break;
-			}
-		}
-	};
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Wont);
+            ToSendBytes.push(AOption);
+            FWebSocket.send(new Uint8Array(ToSendBytes));
+        }
+    };
 
-	SendSubnegotiate = function (AOption) {
-		var ToSendBytes = [];
-		ToSendBytes.push(TelnetCommand.IAC);
-		ToSendBytes.push(TelnetCommand.Subnegotiation);
-		ToSendBytes.push(AOption);
-		FWebSocket.send(new Uint8Array(ToSendBytes));
-	};
+    this.__defineSetter__("WindowSize", function (AWindowSize) {
+        FWindowSize = AWindowSize;
+        if (FNegotiatedOptions[TelnetOption.WindowSize] == TelnetCommand.Will) {
+            that.HandleWindowSize();
+        }
+    });
 
-	SendSubnegotiateEnd = function () {
-		var ToSendBytes = [];
-		ToSendBytes.push(TelnetCommand.IAC);
-		ToSendBytes.push(TelnetCommand.EndSubnegotiation);
-		FWebSocket.send(new Uint8Array(ToSendBytes));
-	};
+    // Constructor
+    TTcpConnection.call(this);
 
-	SendWill = function (AOption) {
-		if (FNegotiatedOptions[AOption] == TelnetCommand.Will) {
-			// Already negotiated this option, don't go into a negotiation storm!
-		} else {
-			FNegotiatedOptions[AOption] = TelnetCommand.Will;
-
-			var ToSendBytes = [];
-			ToSendBytes.push(TelnetCommand.IAC);
-			ToSendBytes.push(TelnetCommand.Will);
-			ToSendBytes.push(AOption);
-			FWebSocket.send(new Uint8Array(ToSendBytes));
-		}
-	};
-
-	SendWont = function (AOption) {
-		if (FNegotiatedOptions[AOption] == TelnetCommand.Wont) {
-			// Already negotiated this option, don't go into a negotiation storm!
-		} else {
-			FNegotiatedOptions[AOption] = TelnetCommand.Wont;
-
-			var ToSendBytes = [];
-			ToSendBytes.push(TelnetCommand.IAC);
-			ToSendBytes.push(TelnetCommand.Wont);
-			ToSendBytes.push(AOption);
-			FWebSocket.send(new Uint8Array(ToSendBytes));
-		}
-	};
-
-	this.__defineSetter__("WindowSize", function (AWindowSize) {
-		FWindowSize = AWindowSize;
-		if (FNegotiatedOptions[TelnetOption.WindowSize] == TelnetCommand.Will) {
-			HandleWindowSize();
-		}
-	});
-
-	// Constructor
-	TTcpConnection.call(this);
-
-	FNegotiatedOptions = [];
-	for (var i = 0; i < 256; i++) {
-		FNegotiatedOptions[i] = 0;
-	}
-	FNegotiationState = TelnetNegotiationState.Data;
+    FNegotiatedOptions = [];
+    for (var i = 0; i < 256; i++) {
+        FNegotiatedOptions[i] = 0;
+    }
+    FNegotiationState = TelnetNegotiationState.Data;
 };
 
 TTelnetConnection.prototype = new TTcpConnectionSurrogate();
-TTelnetConnection.prototype.constructor = TTelnetConnection;/*
+TTelnetConnection.prototype.constructor = TTelnetConnection;
+
+TTelnetConnection.prototype.flush = function () {
+    var that = this;
+    var ToSendString = FOutputBuffer.toString();
+    var ToSendBytes = [];
+
+    // Read 1 byte at a time, doubling up IAC's as necessary
+    for (i = 0; i < ToSendString.length; i++) {
+        ToSendBytes.push(ToSendString.charCodeAt(i));
+        if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
+            ToSendBytes.push(TelnetCommand.IAC);
+        }
+    }
+
+    FWebSocket.send(new Uint8Array(ToSendBytes));
+    FOutputBuffer.clear();
+};
+
+TTelnetConnection.prototype.NegotiateInbound = function (AData) {
+    var that = this;
+
+    // Get any waiting data and handle negotiation
+    while (AData.bytesAvailable) {
+        var B = AData.readUnsignedByte();
+
+        if (FNegotiationState == TelnetNegotiationState.Data) {
+            if (B == TelnetCommand.IAC) {
+                FNegotiationState = TelnetNegotiationState.IAC;
+            }
+            else {
+                FInputBuffer.writeByte(B);
+            }
+        }
+        else if (FNegotiationState == TelnetNegotiationState.IAC) {
+            if (B == TelnetCommand.IAC) {
+                FNegotiationState = TelnetNegotiationState.Data;
+                FInputBuffer.writeByte(B);
+            }
+            else {
+                switch (B) {
+                    case TelnetCommand.NoOperation:
+                    case TelnetCommand.DataMark:
+                    case TelnetCommand.Break:
+                    case TelnetCommand.InterruptProcess:
+                    case TelnetCommand.AbortOutput:
+                    case TelnetCommand.AreYouThere:
+                    case TelnetCommand.EraseCharacter:
+                    case TelnetCommand.EraseLine:
+                    case TelnetCommand.GoAhead:
+                        // We recognize, but ignore these for now
+                        FNegotiationState = TelnetNegotiationState.Data;
+                        break;
+                    case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
+                    case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
+                    case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
+                    case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
+                    default: FNegotiationState = TelnetNegotiationState.Data; break;
+                }
+            }
+        }
+        else if (FNegotiationState == TelnetNegotiationState.Do) {
+            switch (B) {
+                case TelnetOption.TransmitBinary: that.SendWill(B); break;
+                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Do); break;
+                case TelnetOption.SuppressGoAhead: that.SendWill(B); break;
+                case TelnetOption.TerminalType: that.HandleTerminalType(); break;
+                case TelnetOption.WindowSize: that.HandleWindowSize(); break;
+                case TelnetOption.LineMode: that.SendWont(B); break;
+                default: that.SendWont(B); break;
+            }
+            FNegotiationState = TelnetNegotiationState.Data;
+        }
+        else if (FNegotiationState == TelnetNegotiationState.Dont) {
+            switch (B) {
+                case TelnetOption.TransmitBinary: that.SendWill(B); break;
+                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Dont); break;
+                case TelnetOption.SuppressGoAhead: that.SendWill(B); break;
+                case TelnetOption.WindowSize: that.SendWont(B); break;
+                case TelnetOption.LineMode: that.SendWont(B); break;
+                default: that.SendWont(B); break;
+            }
+            FNegotiationState = TelnetNegotiationState.Data;
+        }
+        else if (FNegotiationState == TelnetNegotiationState.Will) {
+            switch (B) {
+                case TelnetOption.TransmitBinary: that.SendDo(B); break;
+                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Will); break;
+                case TelnetOption.SuppressGoAhead: that.SendDo(B); break;
+                case TelnetOption.WindowSize: that.SendDont(B); break;
+                case TelnetOption.LineMode: that.SendDont(B); break;
+                default: that.SendDont(B); break;
+            }
+            FNegotiationState = TelnetNegotiationState.Data;
+        }
+        else if (FNegotiationState == TelnetNegotiationState.Wont) {
+            switch (B) {
+                case TelnetOption.TransmitBinary: that.SendDo(B); break;
+                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Wont); break;
+                case TelnetOption.SuppressGoAhead: that.SendDo(B); break;
+                case TelnetOption.WindowSize: that.SendDont(B); break;
+                case TelnetOption.LineMode: that.SendDont(B); break;
+                default: that.SendDont(B); break;
+            }
+            FNegotiationState = TelnetNegotiationState.Data;
+        }
+        else {
+            FNegotiationState = TelnetNegotiationState.Data;
+        }
+    }
+};/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 

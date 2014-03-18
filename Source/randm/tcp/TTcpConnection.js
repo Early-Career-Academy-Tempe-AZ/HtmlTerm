@@ -26,18 +26,10 @@ var TTcpConnection = function () {
 
     // Private variables
     var that = this;
-    var FWasConnected = false;
-
-    // Protected variables
     this.FInputBuffer = null;
     this.FOutputBuffer;
+    this.FWasConnected = false;
     this.FWebSocket = null;
-
-    // Private methods
-    var OnSocketClose = function () { }; // Do nothing
-    var OnSocketError = function (e) { }; // Do nothing
-    var OnSocketOpen = function () { }; // Do nothing
-    var OnSocketMessage = function (e) { }; // Do nothing
 
     this.__defineGetter__("bytesAvailable", function () {
         return FInputBuffer.bytesAvailable;
@@ -57,10 +49,10 @@ var TTcpConnection = function () {
         FWebSocket.binaryType = 'arraybuffer';
 
         // Set event handlers
-        FWebSocket.onclose = OnSocketClose;
-        FWebSocket.onerror = OnSocketError;
-        FWebSocket.onmessage = OnSocketMessage;
-        FWebSocket.onopen = OnSocketOpen;
+        FWebSocket.onclose = that.OnSocketClose;
+        FWebSocket.onerror = that.OnSocketError;
+        FWebSocket.onmessage = that.OnSocketMessage;
+        FWebSocket.onopen = that.OnSocketOpen;
     };
 
     this.__defineGetter__("connected", function () {
@@ -71,7 +63,7 @@ var TTcpConnection = function () {
         return false;
     });
 
-    OnSocketClose = function () {
+    this.OnSocketClose = function () {
         if (FWasConnected) {
             that.onclose();
         } else {
@@ -80,16 +72,16 @@ var TTcpConnection = function () {
         FWasConnected = false;
     };
 
-    OnSocketError = function (e) {
+    this.OnSocketError = function (e) {
         that.onioerror(e);
     };
 
-    OnSocketOpen = function () {
+    this.OnSocketOpen = function () {
         FWasConnected = true;
         that.onconnect();
     };
 
-    OnSocketMessage = function (e) {
+    this.OnSocketMessage = function (e) {
         // Free up some memory if we're at the end of the buffer
         if (FInputBuffer.bytesAvailable === 0) { FInputBuffer.clear(); }
 
@@ -110,7 +102,7 @@ var TTcpConnection = function () {
         }
         Data.position = 0;
 
-        NegotiateInbound(Data);
+        that.NegotiateInbound(Data);
 
         // Restore the old buffer position
         FInputBuffer.position = OldPosition;
@@ -258,3 +250,23 @@ var TTcpConnection = function () {
 
 var TTcpConnectionSurrogate = function () { };
 TTcpConnectionSurrogate.prototype = TTcpConnection.prototype;
+
+TTcpConnection.prototype.flush = function () {
+    var ToSendString = FOutputBuffer.toString();
+    var ToSendBytes = [];
+
+    for (i = 0; i < ToSendString.length; i++) {
+        ToSendBytes.push(ToSendString.charCodeAt(i));
+    }
+
+    FWebSocket.send(new Uint8Array(ToSendBytes));
+    FOutputBuffer.clear();
+};
+
+TTcpConnection.prototype.NegotiateInbound = function (AData) {
+    // No negotiation for raw tcp connection
+    while (AData.bytesAvailable) {
+        var B = AData.readUnsignedByte();
+        FInputBuffer.writeByte(B);
+    }
+};
