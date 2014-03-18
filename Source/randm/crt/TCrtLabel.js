@@ -23,10 +23,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     var FText = "";
     var FTextAlign;
 
-    // Private methods
-    var Paint = function (AForce) { }; // Do nothing
-
-    Paint = function (AForce) {
+    this.DoPaint = function (AForce) {
         // Draw the message
         switch (FTextAlign) {
             case ContentAlignment.Center:
@@ -62,7 +59,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
 
     this.__defineSetter__("Text", function (AText) {
         FText = AText;
-        Paint(true);
+        that.Paint(true);
     });
 
     this.__defineGetter__("TextAlign", function () {
@@ -72,7 +69,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     this.__defineSetter__("TextAlign", function (ATextAlign) {
         if (ATextAlign !== FTextAlign) {
             FTextAlign = ATextAlign;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -84,8 +81,12 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     that.ForeColour = AForeColour;
     that.BackColour = ABackColour;
 
-    Paint(true);
+    that.Paint(true);
 };
 
 TCrtLabel.prototype = new TCrtControlSurrogate();
 TCrtLabel.prototype.constructor = TCrtLabel;
+
+TCrtLabel.prototype.Paint = function (AForce) {
+    this.DoPaint();
+};

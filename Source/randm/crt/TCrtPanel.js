@@ -23,9 +23,6 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     var FText = "";
     var FTextAlign;
 
-    // Private methods
-    var Paint = function (AForce) { }; // Do nothing
-
     this.__defineGetter__("Border", function () {
         return FBorder;
     });
@@ -33,11 +30,11 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     this.__defineSetter__("Border", function (ABorder) {
         if (ABorder !== FBorder) {
             FBorder = ABorder;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
-    Paint = function (AForce) {
+    this.DoPaint = function (AForce) {
         // Characters for the box
         var Line;
         var TopLeft;
@@ -149,7 +146,7 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
 
     this.__defineSetter__("Text", function (AText) {
         FText = AText;
-        Paint(true);
+        that.Paint(true);
     });
 
     this.__defineGetter__("TextAlign", function () {
@@ -159,7 +156,7 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     this.__defineSetter__("TextAlign", function (ATextAlign) {
         if (ATextAlign !== FTextAlign) {
             FTextAlign = ATextAlign;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -172,8 +169,12 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
     FText = AText;
     FTextAlign = ATextAlign;
 
-    Paint(true);
+    that.Paint(true);
 };
 
 TCrtPanel.prototype = new TCrtControlSurrogate();
 TCrtPanel.prototype.constructor = TCrtPanel;
+
+TCrtPanel.prototype.Paint = function (AForce) {
+    this.DoPaint();
+};

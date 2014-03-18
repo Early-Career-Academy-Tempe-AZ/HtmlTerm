@@ -31,9 +31,6 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
     var FStyle;
     var FValue;
 
-    // Private methods
-    var Paint = function (AForce) { }; // Do nothing
-		
     this.__defineGetter__("BarForeColour", function () {
         return FBarForeColour;
     });
@@ -42,7 +39,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (ABarForeColour !== FBarForeColour)
         {
             FBarForeColour = ABarForeColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
@@ -54,10 +51,90 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (ABlankForeColour !== FBlankForeColour)
         {
             FBlankForeColour = ABlankForeColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
+    /// <summary>
+    /// Re-Draw the bar and percent text.
+    /// </summary>
+    /// <param name="AForce">When true, the bar and percent will always be Paintn.  When false, the bar and percent will only be Paintn as necessary, which reduces the number of unnecessary Paints (especially when a large maximum is used)</param>
+    this.DoPaint = function (AForce) {
+        if (FStyle === ProgressBarStyle.Marquee) {
+            if (AForce) {
+                // Erase the old bar
+                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+            }
+
+            // Draw the new bar
+            if (FValue > 0) {
+                if (FValue > that.Width) {
+                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + that.Width - (15 - Math.floor(FValue - that.Width)), that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                }
+                else if (FValue >= 15) {
+                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
+                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                }
+                else {
+                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
+                }
+            }
+        }
+        else {
+            // Check if we're forcing an update (probably due to a change in Left, Top, Width, etc)
+            if (AForce) {
+                // Yep, so reset the "Last" variables
+                FLastBarWidth = 9999;
+                FLastPercentText = "";
+            }
+
+            var PaintPercentText = false;
+            var Percent = FValue / FMaximum;
+            var NewBarWidth = Math.floor(Percent * that.Width);
+            if (NewBarWidth !== FLastBarWidth) {
+                // Check if the bar shrank (if so, we need to delete the old bar)
+                if (NewBarWidth < FLastBarWidth) {
+                    // Erase the old bar
+                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                }
+
+                // Draw the new bar
+                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(FStyle), NewBarWidth), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
+
+                FLastBarWidth = NewBarWidth;
+                PaintPercentText = true;
+            }
+
+            // Draw the percentage
+            if (FPercentVisible) {
+                var NewPercentText = StringUtils.FormatPercent(Percent, FPercentPrecision);
+                if ((NewPercentText !== FLastPercentText) || (PaintPercentText)) {
+                    FLastPercentText = NewPercentText;
+
+                    var ProgressStart = Math.round((that.Width - NewPercentText.length) / 2);
+                    if (ProgressStart >= NewBarWidth) {
+                        // Bar hasn't reached the percent text, so draw in the bar's empty color
+                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
+                    }
+                    else if (ProgressStart + NewPercentText.length <= NewBarWidth) {
+                        // Bar has passed the percent text, so draw in the bar's foreground colour (or still use background for Blocks)
+                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", that.BackColour + (FBarForeColour << 4)));
+                    }
+                    else {
+                        // Bar is in the middle of the percent text, so draw the colour as necessary for each letter in the text
+                        var i;
+                        for (i = 0; i < NewPercentText.length; i++) {
+                            var LetterPosition = ProgressStart + i;
+                            var FG = (LetterPosition >= NewBarWidth) ? FBlankForeColour : that.BackColour;
+                            var BG = (LetterPosition >= NewBarWidth) ? that.BackColour : FBarForeColour;
+                            Crt.FastWrite(NewPercentText.charAt(i), that.ScreenLeft + LetterPosition, that.ScreenTop, new TCharInfo(" ", FG + (BG << 4)));
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     this.__defineGetter__("MarqueeAnimationSpeed", function () {
         return FMarqueeAnimationSpeed;
     });
@@ -77,105 +154,9 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
             if (FValue > FMaximum) {
                 FValue = FMaximum;
             }
-            Paint(true);
+            that.Paint(true);
         }
     });
-		
-    /// <summary>
-    /// Re-Draw the bar and percent text.
-    /// </summary>
-    /// <param name="AForce">When true, the bar and percent will always be Paintn.  When false, the bar and percent will only be Paintn as necessary, which reduces the number of unnecessary Paints (especially when a large maximum is used)</param>
-    Paint = function (AForce) {
-        if (FStyle === ProgressBarStyle.Marquee)
-        {
-            if (AForce)
-            {
-                // Erase the old bar
-                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-            }
-				
-            // Draw the new bar
-            if (FValue > 0)
-            {
-                if (FValue > that.Width)
-                {
-                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + that.Width - (15 - Math.floor(FValue - that.Width)), that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                }
-                else if (FValue >= 15)
-                {
-                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
-                    Crt.FastWrite(String.fromCharCode(176), that.ScreenLeft + FValue - 15, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                }
-                else
-                {
-                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(219), Math.min(FValue, 15)), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
-                }
-            }
-        }
-        else
-        {
-            // Check if we're forcing an update (probably due to a change in Left, Top, Width, etc)
-            if (AForce)
-            {
-                // Yep, so reset the "Last" variables
-                FLastBarWidth = 9999;
-                FLastPercentText = "";
-            }
-				
-            var PaintPercentText = false;
-            var Percent = FValue / FMaximum;
-            var NewBarWidth = Math.floor(Percent * that.Width);
-            if (NewBarWidth !== FLastBarWidth)
-            {
-                // Check if the bar shrank (if so, we need to delete the old bar)
-                if (NewBarWidth < FLastBarWidth)
-                {
-                    // Erase the old bar
-                    Crt.FastWrite(StringUtils.NewString(String.fromCharCode(176), that.Width), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                }
-					
-                // Draw the new bar
-                Crt.FastWrite(StringUtils.NewString(String.fromCharCode(FStyle), NewBarWidth), that.ScreenLeft, that.ScreenTop, new TCharInfo(" ", FBarForeColour + (that.BackColour << 4)));
-					
-                FLastBarWidth = NewBarWidth;
-                PaintPercentText = true;
-            }
-				
-            // Draw the percentage
-            if (FPercentVisible)
-            {
-                var NewPercentText = StringUtils.FormatPercent(Percent, FPercentPrecision);
-                if ((NewPercentText !== FLastPercentText) || (PaintPercentText))
-                {
-                    FLastPercentText = NewPercentText;
-						
-                    var ProgressStart = Math.round((that.Width - NewPercentText.length) / 2);
-                    if (ProgressStart >= NewBarWidth)
-                    {
-                        // Bar hasn't reached the percent text, so draw in the bar's empty color
-                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", FBlankForeColour + (that.BackColour << 4)));
-                    }
-                    else if (ProgressStart + NewPercentText.length <= NewBarWidth)
-                    {
-                        // Bar has passed the percent text, so draw in the bar's foreground colour (or still use background for Blocks)
-                        Crt.FastWrite(NewPercentText, that.ScreenLeft + ProgressStart, that.ScreenTop, new TCharInfo(" ", that.BackColour + (FBarForeColour << 4)));
-                    }
-                    else
-                    {
-                        // Bar is in the middle of the percent text, so draw the colour as necessary for each letter in the text
-                        var i;
-                        for (i = 0; i < NewPercentText.length; i++)
-                        {
-                            var LetterPosition = ProgressStart + i;
-                            var FG = (LetterPosition >= NewBarWidth) ? FBlankForeColour : that.BackColour;
-                            var BG = (LetterPosition >= NewBarWidth) ? that.BackColour : FBarForeColour;
-                            Crt.FastWrite(NewPercentText.charAt(i), that.ScreenLeft + LetterPosition, that.ScreenTop, new TCharInfo(" ", FG + (BG << 4)));
-                        }
-                    }
-                }
-            }
-        }
-    };
 		
     this.__defineGetter__("PercentPrecision", function () {
         return FPercentPrecision;
@@ -185,7 +166,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (APercentPrecision !== FPercentPrecision)
         {
             FPercentPrecision = APercentPrecision;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
@@ -197,7 +178,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (APercentVisible !== FPercentVisible)
         {
             FPercentVisible = APercentVisible;
-            Paint(true);
+            that.Paint(true);
         }
     });
 		
@@ -217,7 +198,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         if (AStyle !== FStyle)
         {
             FStyle = AStyle;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -240,7 +221,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
                         AValue = 0;
                     }
                     FValue = AValue;
-                    Paint(false);
+                    that.Paint(false);
                     FLastMarqueeUpdate = new Date();
                 }
             }
@@ -248,7 +229,7 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
             {
                 // Keep value between 0 and Maximum
                 FValue = Math.max(0, Math.min(AValue, FMaximum));
-                Paint(false);
+                that.Paint(false);
             }
         }
     });
@@ -268,8 +249,12 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
     FPercentVisible = true;
     FValue = 0;
 			
-    Paint(true);
+    that.Paint(true);
 };
 
 TCrtProgressBar.prototype = new TCrtControlSurrogate();
 TCrtProgressBar.prototype.constructor = TCrtProgressBar;
+
+TCrtProgressBar.prototype.Paint = function (AForce) {
+    this.DoPaint();
+};

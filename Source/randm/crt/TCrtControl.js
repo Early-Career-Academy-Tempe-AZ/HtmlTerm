@@ -30,7 +30,6 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     var FWidth;
 
     // Private methods
-    var Paint = function (AForce) { }; // Do nothing
     var RestoreBackground = function () { }; // Do nothing
     var SaveBackground = function () { }; // Do nothing
 
@@ -45,7 +44,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     this.__defineSetter__("BackColour", function (ABackColour) {
         if (ABackColour !== FBackColour) {
             FBackColour = ABackColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -56,7 +55,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     this.__defineSetter__("ForeColour", function (AForeColour) {
         if (AForeColour !== FForeColour) {
             FForeColour = AForeColour;
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -69,7 +68,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FHeight = AHeight;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -88,17 +87,13 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FLeft = ALeft;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
 
             for (i = 0; i < FControls.length; i++) {
                 FControls[i].Paint(true);
             }
         }
     });
-
-    Paint = function (AForce) {
-        // Override in extended class
-    };
 
     this.__defineGetter__("Parent", function () {
         return FParent;
@@ -108,15 +103,31 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
         RestoreBackground();
         FParent = AParent;
         SaveBackground();
-        Paint(true);
+        that.Paint(true);
     });
 
     RestoreBackground = function () {
-        Crt.RestoreScreen(FBackground, FLeft, FTop, FLeft + FWidth - 1, FTop + FHeight - 1);
+        var Left = FLeft;
+        var Top = FTop;
+        var P = FParent;
+        while (P != null) {
+            Left += P.Left;
+            Top += P.Top;
+            P = P.FParent;
+        }
+        Crt.RestoreScreen(FBackground, Left, Top, Left + FWidth - 1, Top + FHeight - 1);
     };
 
     SaveBackground = function () {
-        FBackground = Crt.SaveScreen(FLeft, FTop, FLeft + FWidth - 1, FTop + FHeight - 1);
+        var Left = FLeft;
+        var Top = FTop;
+        var P = FParent;
+        while (P != null) {
+            Left += P.Left;
+            Top += P.Top;
+            P = P.FParent;
+        }
+        FBackground = Crt.SaveScreen(Left, Top, Left + FWidth - 1, Top + FHeight - 1);
     };
 
     this.__defineGetter__("ScreenLeft", function () {
@@ -128,7 +139,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
     });
 
     this.Show = function () {
-        Paint(true);
+        that.Paint(true);
 
         var i;
         for (i = 0; i < FControls.length; i++) {
@@ -145,7 +156,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FTop = ATop;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
 
             var i;
             for (i = 0; i < FControls.length; i++) {
@@ -163,7 +174,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
             RestoreBackground();
             FWidth = AWidth;
             SaveBackground();
-            Paint(true);
+            that.Paint(true);
         }
     });
 
@@ -183,3 +194,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
 
 var TCrtControlSurrogate = function () { };
 TCrtControlSurrogate.prototype = TCrtControl.prototype;
+
+TCrtControl.prototype.Paint = function (AForce) {
+    // Override in extended class
+};
