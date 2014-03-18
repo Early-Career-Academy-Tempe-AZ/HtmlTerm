@@ -47,7 +47,6 @@ var THtmlTerm = function () {
     var FSplashScreen = "G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==";
 
     // Private methods
-    var LoadFile = function (f, len) { }; // Do nothing
     var OnAnsiESC5n = function (AEvent) { }; // Do nothing
     var OnAnsiESC6n = function (AEvent) { }; // Do nothing
     var OnAnsiESC255n = function (AEvent) { }; // Do nothing
@@ -63,6 +62,7 @@ var THtmlTerm = function () {
     var OnTimer = function (e) { }; // Do nothing
     var OnUploadComplete = function (e) { }; // Do nothing
     var ShowSaveFilesButton = function () { }; // Do nothing
+    var UploadFile = function (f, len) { }; // Do nothing
 
     this.Init = function (AContainerID) {
         // Ensure we have our container
@@ -160,7 +160,7 @@ var THtmlTerm = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
 
         // Create new connection
-        FConnection = new TTelnetConnection(); // TODO Could be TRLoginConnection
+        FConnection = new TTelnetConnection(); // TODO Could be TTcpConnection or TRLoginConnection
         FConnection.onclose = OnConnectionClose;
         FConnection.onconnect = OnConnectionConnect;
         FConnection.onioerror = OnConnectionIOError;
@@ -477,40 +477,6 @@ var THtmlTerm = function () {
         FTimer = setInterval(OnTimer, 50);
     };
 
-    // TODO Test if this is still needed
-    LoadFile = function (AFile, AFileCount) {
-        var reader = new FileReader();
-
-        // Closure to capture the file information.
-        reader.onload = function (e) {
-            var FR = new TFileRecord(AFile.name, AFile.size);
-            FR.data.writeString(e.target.result);
-            FR.data.position = 0;
-            FYModemSend.Upload(FR, AFileCount);
-        };
-
-        // Read in the image file as a data URL.
-        reader.readAsBinaryString(AFile);
-    };
-
-    this.Upload = function (AFiles) {
-        if (FConnection === null) { return; }
-        if (!FConnection.connected) { return; }
-
-        // Get the YModemSend class ready to go
-        FYModemSend = new TYModemSend(FConnection);
-
-        // Setup the listeners
-        clearInterval(FTimer);
-        FYModemSend.ontransfercomplete = OnUploadComplete;
-
-        // Loop through the FileList and prep them for upload
-        var i;
-        for (i = 0; i < AFiles.length; i++) {
-            LoadFile(AFiles[i], AFiles.length);
-        }
-    };
-
     this.__defineGetter__("Port", function () {
         return FPort;
     });
@@ -574,5 +540,39 @@ var THtmlTerm = function () {
     this.__defineSetter__("SplashScreen", function (ASplashScreen) {
         FSplashScreen = ASplashScreen;
     });
+
+    this.Upload = function (AFiles) {
+        if (FConnection === null) { return; }
+        if (!FConnection.connected) { return; }
+
+        // Get the YModemSend class ready to go
+        FYModemSend = new TYModemSend(FConnection);
+
+        // Setup the listeners
+        clearInterval(FTimer);
+        FYModemSend.ontransfercomplete = OnUploadComplete;
+
+        // Loop through the FileList and prep them for upload
+        var i;
+        for (i = 0; i < AFiles.length; i++) {
+            UploadFile(AFiles[i], AFiles.length);
+        }
+    };
+
+    UploadFile = function (AFile, AFileCount) {
+        trace(AFile);
+        var reader = new FileReader();
+
+        // Closure to capture the file information.
+        reader.onload = function (e) {
+            var FR = new TFileRecord(AFile.name, AFile.size);
+            FR.data.writeString(e.target.result);
+            FR.data.position = 0;
+            FYModemSend.Upload(FR, AFileCount);
+        };
+
+        // Read in the image file as a data URL.
+        reader.readAsBinaryString(AFile);
+    };
 };
 HtmlTerm = new THtmlTerm();

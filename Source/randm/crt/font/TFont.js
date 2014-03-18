@@ -78,7 +78,7 @@ var TFont = function () {
         // Validate values
         if ((ACharCode < 0) || (ACharCode > 255) || (ACharInfo.Attr < 0) || (ACharInfo.Attr > 255)) { return 0; }
 
-        var FCharMapKey = ACharCode + "-" + ACharInfo.Attr + "-" + ACharInfo.Reversed;
+        var FCharMapKey = ACharCode + "-" + ACharInfo.Attr + "-" + ACharInfo.Reverse;
 
         // Check if we have used this character before
         if (!FCharMap[FCharMapKey]) {
@@ -95,7 +95,7 @@ var TFont = function () {
             }
 
             // Reverse if necessary
-            if (ACharInfo.Reversed) {
+            if (ACharInfo.Reverse) {
                 var Temp = Fore;
                 Fore = Back;
                 Back = Temp;

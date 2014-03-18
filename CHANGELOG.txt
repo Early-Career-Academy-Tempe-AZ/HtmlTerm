@@ -5,7 +5,6 @@
 	- RLogin
 	- VTxxx
 	- Underline
-	- Telnet spec fixes (ie NAWS) and localecho
 
 Sep 29
 	- Added support for proxying through websockify

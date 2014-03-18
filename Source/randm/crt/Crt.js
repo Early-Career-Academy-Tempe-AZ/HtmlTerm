@@ -364,7 +364,7 @@ var TCrt = function () {
             for (Y = 0; Y < FScrollBack.length; Y++) {
                 NewRow = [];
                 for (X = 0; X < FScrollBack[Y].length; X++) {
-                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline, FScrollBack[Y][X].Reversed));
+                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline, FScrollBack[Y][X].Reverse));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -374,7 +374,7 @@ var TCrt = function () {
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 NewRow = [];
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed));
+                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reverse));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -416,7 +416,7 @@ var TCrt = function () {
                     FBuffer[AY][AX + i].Attr = ACharInfo.Attr;
                     FBuffer[AY][AX + i].Blink = ACharInfo.Blink;
                     FBuffer[AY][AX + i].Underline = ACharInfo.Underline;
-                    FBuffer[AY][AX + i].Reversed = ACharInfo.Reversed;
+                    FBuffer[AY][AX + i].Reverse = ACharInfo.Reverse;
                 }
 
                 if (AX + i >= FScreenSize.x) { break; }
@@ -554,7 +554,7 @@ var TCrt = function () {
         }
         FCharInfo.Blink = false;
         FCharInfo.Underline = false;
-        FCharInfo.Reversed = false;
+        FCharInfo.Reverse = false;
     };
 
     OnBlinkHide = function (e) {
@@ -899,7 +899,7 @@ var TCrt = function () {
         for (var Y = 0; Y < Height; Y++) {
             Result[Y] = [];
             for (var X = 0; X < Width; X++) {
-                Result[Y][X] = new TCharInfo(FBuffer[Y + ATop][X + ALeft].Ch, FBuffer[Y + ATop][X + ALeft].Attr, FBuffer[Y + ATop][X + ALeft].Blink, FBuffer[Y + ATop][X + ALeft].Underline, FBuffer[Y + ATop][X + ALeft].Reversed);
+                Result[Y][X] = new TCharInfo(FBuffer[Y + ATop][X + ALeft].Ch, FBuffer[Y + ATop][X + ALeft].Attr, FBuffer[Y + ATop][X + ALeft].Blink, FBuffer[Y + ATop][X + ALeft].Underline, FBuffer[Y + ATop][X + ALeft].Reverse);
             }
         }
 			
@@ -967,7 +967,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y - ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y - ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y - ALines][X].Underline;
-                    FBuffer[Y][X].Reversed = FBuffer[Y - ALines][X].Reversed;
+                    FBuffer[Y][X].Reverse = FBuffer[Y - ALines][X].Reverse;
                 }
             }
 
@@ -978,7 +978,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
-                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
+                    FBuffer[Y][X].Reverse = ACharInfo.Reverse;
                 }
             }
         }
@@ -1053,7 +1053,7 @@ var TCrt = function () {
             for (Y = 0; Y < ALines; Y++) {
                 NewRow = [];
                 for (X = AX1; X <= AX2; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline, FBuffer[Y + AY1][X].Reversed));
+                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline, FBuffer[Y + AY1][X].Reverse));
                 }
                 FScrollBack.push(NewRow);
             }
@@ -1071,7 +1071,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y + ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y + ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y + ALines][X].Underline;
-                    FBuffer[Y][X].Reversed = FBuffer[Y + ALines][X].Reversed;
+                    FBuffer[Y][X].Reverse = FBuffer[Y + ALines][X].Reverse;
                 }
             }
 
@@ -1082,7 +1082,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
-                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
+                    FBuffer[Y][X].Reverse = ACharInfo.Reverse;
                 }
             }
         }
@@ -1113,7 +1113,7 @@ var TCrt = function () {
     };
 
     this.SetCharInfo = function (ACharInfo) {
-        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline, ACharInfo.Reversed);
+        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline, ACharInfo.Reverse);
     };
 
     this.SetFont = function (ACodePage, AWidth, AHeight) {
@@ -1145,7 +1145,7 @@ var TCrt = function () {
             FOldBuffer.InitTwoDimensions(FScreenSize.x, FScreenSize.y);
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
+                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reverse);
                 }
             }
         }
@@ -1743,7 +1743,7 @@ var TCrt = function () {
                 // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction with this Carriage return character in the PETSCII system. 
                 X = 1;
                 Y += 1;
-                FCharInfo.Reversed = false;
+                FCharInfo.Reverse = false;
                 DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x0E) {
@@ -1757,7 +1757,7 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x12) {
                 // Reverse on: Selects reverse video text. 
-                FCharInfo.Reversed = true;
+                FCharInfo.Reverse = true;
             }
             else if (AText.charCodeAt(i) === 0x13) {
                 // Home: Next character will be printed in the upper left-hand corner of the screen. 
@@ -1822,7 +1822,7 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x92) {
                 // Reverse off: De-selects reverse video text. 
-                FCharInfo.Reversed = false;
+                FCharInfo.Reverse = false;
             }
             else if (AText.charCodeAt(i) === 0x93) {
                 // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
