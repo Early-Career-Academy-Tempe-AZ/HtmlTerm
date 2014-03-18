@@ -5433,8 +5433,6 @@ var TTelnetConnection = function () {
 	});
 
 	NegotiateInbound = function (AData) {
-	    var DebugText = "";
-
 		// Get any waiting data and handle negotiation
 		while (AData.bytesAvailable) {
 			var B = AData.readUnsignedByte();
@@ -5445,14 +5443,12 @@ var TTelnetConnection = function () {
 				}
 				else {
 				    FInputBuffer.writeByte(B);
-				    DebugText += "\\x" + ("0" + B.toString(16)).substr(-2);
                 }
 			}
 			else if (FNegotiationState == TelnetNegotiationState.IAC) {
 				if (B == TelnetCommand.IAC) {
 					FNegotiationState = TelnetNegotiationState.Data;
 					FInputBuffer.writeByte(B);
-					DebugText += "\\x" + ("0" + B.toString(16)).substr(-2);
                 }
 				else {
 					switch (B) {
@@ -5525,8 +5521,6 @@ var TTelnetConnection = function () {
 				FNegotiationState = TelnetNegotiationState.Data;
 			}
 		}
-
-		trace(DebugText);
 	};
 
 	// TODO Need NegotiateOutbound
