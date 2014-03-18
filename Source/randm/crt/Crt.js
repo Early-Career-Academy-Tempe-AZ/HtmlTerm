@@ -1125,11 +1125,8 @@ var TCrt = function () {
         /// <param name="AY">The vertical size</param>
         /// <returns>True if the size was found and set, False if the size was not available</returns>
 
-        // Only try to change if the current size doens't match the requested size
-        if ((ACodePage !== FFont.CodePage) || (AWidth !== FFont.Size.x) || (AHeight !== FFont.Size.y)) {
-            // Request the new font
-            FFont.Load(ACodePage, AWidth, AHeight);
-        }
+        // Request the new font
+        FFont.Load(ACodePage, AWidth, AHeight);
     };
 
     this.SetScreenSize = function (AColumns, ARows) {
