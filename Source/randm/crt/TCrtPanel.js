@@ -34,7 +34,7 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
         }
     });
 
-    this.DoPaint = function (AForce) {
+    this.PaintCrtPanel = function (AForce) {
         // Characters for the box
         var Line;
         var TopLeft;
@@ -176,5 +176,5 @@ TCrtPanel.prototype = new TCrtControlSurrogate();
 TCrtPanel.prototype.constructor = TCrtPanel;
 
 TCrtPanel.prototype.Paint = function (AForce) {
-    this.DoPaint();
+    this.PaintCrtPanel();
 };

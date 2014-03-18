@@ -23,7 +23,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     var FText = "";
     var FTextAlign;
 
-    this.DoPaint = function (AForce) {
+    this.PaintCrtLabel = function (AForce) {
         // Draw the message
         switch (FTextAlign) {
             case ContentAlignment.Center:
@@ -88,5 +88,5 @@ TCrtLabel.prototype = new TCrtControlSurrogate();
 TCrtLabel.prototype.constructor = TCrtLabel;
 
 TCrtLabel.prototype.Paint = function (AForce) {
-    this.DoPaint();
+    this.PaintCrtLabel();
 };

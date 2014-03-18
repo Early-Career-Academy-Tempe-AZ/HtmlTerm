@@ -55,11 +55,34 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         }
     });
 		
+    this.__defineGetter__("MarqueeAnimationSpeed", function () {
+        return FMarqueeAnimationSpeed;
+    });
+
+    this.__defineSetter__("MarqueeAnimationSpeed", function (AMarqueeAnimationSpeed) {
+        FMarqueeAnimationSpeed = AMarqueeAnimationSpeed;
+    });
+		
+    this.__defineGetter__("Maximum", function () {
+        return FMaximum;
+    });
+
+    this.__defineSetter__("Maximum", function (AMaximum) {
+        if (AMaximum !== FMaximum)
+        {
+            FMaximum = AMaximum;
+            if (FValue > FMaximum) {
+                FValue = FMaximum;
+            }
+            that.Paint(true);
+        }
+    });
+		
     /// <summary>
     /// Re-Draw the bar and percent text.
     /// </summary>
     /// <param name="AForce">When true, the bar and percent will always be Paintn.  When false, the bar and percent will only be Paintn as necessary, which reduces the number of unnecessary Paints (especially when a large maximum is used)</param>
-    this.DoPaint = function (AForce) {
+    this.PaintCrtProgressBar = function (AForce) {
         if (FStyle === ProgressBarStyle.Marquee) {
             if (AForce) {
                 // Erase the old bar
@@ -135,29 +158,6 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         }
     };
 
-    this.__defineGetter__("MarqueeAnimationSpeed", function () {
-        return FMarqueeAnimationSpeed;
-    });
-
-    this.__defineSetter__("MarqueeAnimationSpeed", function (AMarqueeAnimationSpeed) {
-        FMarqueeAnimationSpeed = AMarqueeAnimationSpeed;
-    });
-		
-    this.__defineGetter__("Maximum", function () {
-        return FMaximum;
-    });
-
-    this.__defineSetter__("Maximum", function (AMaximum) {
-        if (AMaximum !== FMaximum)
-        {
-            FMaximum = AMaximum;
-            if (FValue > FMaximum) {
-                FValue = FMaximum;
-            }
-            that.Paint(true);
-        }
-    });
-		
     this.__defineGetter__("PercentPrecision", function () {
         return FPercentPrecision;
     });
@@ -256,5 +256,5 @@ TCrtProgressBar.prototype = new TCrtControlSurrogate();
 TCrtProgressBar.prototype.constructor = TCrtProgressBar;
 
 TCrtProgressBar.prototype.Paint = function (AForce) {
-    this.DoPaint();
+    this.PaintCrtProgressBar();
 };
