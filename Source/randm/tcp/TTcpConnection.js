@@ -91,7 +91,7 @@ var TTcpConnection = function () {
             ToSendBytes.push(ToSendString.charCodeAt(i));
         }
 
-        FWebSocket.send(new Uint8Array(ToSendBytes));
+        FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
         FOutputBuffer.clear();
     };
 
