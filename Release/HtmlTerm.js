@@ -1266,7 +1266,7 @@ var TFont = function () {
         // Validate values
         if ((ACharCode < 0) || (ACharCode > 255) || (ACharInfo.Attr < 0) || (ACharInfo.Attr > 255)) { return 0; }
 
-        var FCharMapKey = ACharCode + "-" + ACharInfo.Attr + "-" + ACharInfo.Reversed;
+        var FCharMapKey = ACharCode + "-" + ACharInfo.Attr + "-" + ACharInfo.Reverse;
 
         // Check if we have used this character before
         if (!FCharMap[FCharMapKey]) {
@@ -1283,7 +1283,7 @@ var TFont = function () {
             }
 
             // Reverse if necessary
-            if (ACharInfo.Reversed) {
+            if (ACharInfo.Reverse) {
                 var Temp = Fore;
                 Fore = Back;
                 Back = Temp;
@@ -1572,18 +1572,18 @@ ProgressBarStyle = new TProgressBarStyle();
   You should have received a copy of the GNU General Public License
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
-var TCharInfo = function (ACh, AAttr, ABlink, AUnderline, AReversed) {
+var TCharInfo = function (ACh, AAttr, ABlink, AUnderline, AReverse) {
     // Handle optional parameters
     if (typeof ABlink === "undefined") { ABlink = false; }
     if (typeof AUnderline === "undefined") { AUnderline = false; }
-    if (typeof AReversed === "undefined") { AReversed = false; }
+    if (typeof AReverse === "undefined") { AReverse = false; }
 
     // Constructor
     this.Ch = ACh;
     this.Attr = AAttr;
     this.Blink = ABlink;
     this.Underline = AUnderline;
-    this.Reversed = AReversed;
+    this.Reverse = AReverse;
 };/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -1950,7 +1950,7 @@ var TCrt = function () {
             for (Y = 0; Y < FScrollBack.length; Y++) {
                 NewRow = [];
                 for (X = 0; X < FScrollBack[Y].length; X++) {
-                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline, FScrollBack[Y][X].Reversed));
+                    NewRow.push(new TCharInfo(FScrollBack[Y][X].Ch, FScrollBack[Y][X].Attr, FScrollBack[Y][X].Blink, FScrollBack[Y][X].Underline, FScrollBack[Y][X].Reverse));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -1960,7 +1960,7 @@ var TCrt = function () {
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 NewRow = [];
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed));
+                    NewRow.push(new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reverse));
                 }
                 FScrollBackTemp.push(NewRow);
             }
@@ -2002,7 +2002,7 @@ var TCrt = function () {
                     FBuffer[AY][AX + i].Attr = ACharInfo.Attr;
                     FBuffer[AY][AX + i].Blink = ACharInfo.Blink;
                     FBuffer[AY][AX + i].Underline = ACharInfo.Underline;
-                    FBuffer[AY][AX + i].Reversed = ACharInfo.Reversed;
+                    FBuffer[AY][AX + i].Reverse = ACharInfo.Reverse;
                 }
 
                 if (AX + i >= FScreenSize.x) { break; }
@@ -2018,6 +2018,10 @@ var TCrt = function () {
             that.FastWrite(Line, 1, Y, FCharInfo);
         }
     };
+
+    this.__defineGetter__("Font", function () {
+        return FFont;
+    });
 
     this.GetCharInfo = function () {
         return FCharInfo;
@@ -2140,7 +2144,7 @@ var TCrt = function () {
         }
         FCharInfo.Blink = false;
         FCharInfo.Underline = false;
-        FCharInfo.Reversed = false;
+        FCharInfo.Reverse = false;
     };
 
     OnBlinkHide = function (e) {
@@ -2485,7 +2489,7 @@ var TCrt = function () {
         for (var Y = 0; Y < Height; Y++) {
             Result[Y] = [];
             for (var X = 0; X < Width; X++) {
-                Result[Y][X] = new TCharInfo(FBuffer[Y + ATop][X + ALeft].Ch, FBuffer[Y + ATop][X + ALeft].Attr, FBuffer[Y + ATop][X + ALeft].Blink, FBuffer[Y + ATop][X + ALeft].Underline, FBuffer[Y + ATop][X + ALeft].Reversed);
+                Result[Y][X] = new TCharInfo(FBuffer[Y + ATop][X + ALeft].Ch, FBuffer[Y + ATop][X + ALeft].Attr, FBuffer[Y + ATop][X + ALeft].Blink, FBuffer[Y + ATop][X + ALeft].Underline, FBuffer[Y + ATop][X + ALeft].Reverse);
             }
         }
 			
@@ -2553,7 +2557,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y - ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y - ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y - ALines][X].Underline;
-                    FBuffer[Y][X].Reversed = FBuffer[Y - ALines][X].Reversed;
+                    FBuffer[Y][X].Reverse = FBuffer[Y - ALines][X].Reverse;
                 }
             }
 
@@ -2564,7 +2568,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
-                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
+                    FBuffer[Y][X].Reverse = ACharInfo.Reverse;
                 }
             }
         }
@@ -2639,7 +2643,7 @@ var TCrt = function () {
             for (Y = 0; Y < ALines; Y++) {
                 NewRow = [];
                 for (X = AX1; X <= AX2; X++) {
-                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline, FBuffer[Y + AY1][X].Reversed));
+                    NewRow.push(new TCharInfo(FBuffer[Y + AY1][X].Ch, FBuffer[Y + AY1][X].Attr, FBuffer[Y + AY1][X].Blink, FBuffer[Y + AY1][X].Underline, FBuffer[Y + AY1][X].Reverse));
                 }
                 FScrollBack.push(NewRow);
             }
@@ -2657,7 +2661,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = FBuffer[Y + ALines][X].Attr;
                     FBuffer[Y][X].Blink = FBuffer[Y + ALines][X].Blink;
                     FBuffer[Y][X].Underline = FBuffer[Y + ALines][X].Underline;
-                    FBuffer[Y][X].Reversed = FBuffer[Y + ALines][X].Reversed;
+                    FBuffer[Y][X].Reverse = FBuffer[Y + ALines][X].Reverse;
                 }
             }
 
@@ -2668,7 +2672,7 @@ var TCrt = function () {
                     FBuffer[Y][X].Attr = ACharInfo.Attr;
                     FBuffer[Y][X].Blink = ACharInfo.Blink;
                     FBuffer[Y][X].Underline = ACharInfo.Underline;
-                    FBuffer[Y][X].Reversed = ACharInfo.Reversed;
+                    FBuffer[Y][X].Reverse = ACharInfo.Reverse;
                 }
             }
         }
@@ -2699,7 +2703,7 @@ var TCrt = function () {
     };
 
     this.SetCharInfo = function (ACharInfo) {
-        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline, ACharInfo.Reversed);
+        FCharInfo = new TCharInfo(ACharInfo.Ch, ACharInfo.Attr, ACharInfo.Blink, ACharInfo.Underline, ACharInfo.Reverse);
     };
 
     this.SetFont = function (ACodePage, AWidth, AHeight) {
@@ -2731,7 +2735,7 @@ var TCrt = function () {
             FOldBuffer.InitTwoDimensions(FScreenSize.x, FScreenSize.y);
             for (Y = 1; Y <= FScreenSize.y; Y++) {
                 for (X = 1; X <= FScreenSize.x; X++) {
-                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reversed);
+                    FOldBuffer[Y][X] = new TCharInfo(FBuffer[Y][X].Ch, FBuffer[Y][X].Attr, FBuffer[Y][X].Blink, FBuffer[Y][X].Underline, FBuffer[Y][X].Reverse);
                 }
             }
         }
@@ -3329,7 +3333,7 @@ var TCrt = function () {
                 // As opposed to traditional ASCII-based system, no LINE FEED character needs to be sent in conjunction with this Carriage return character in the PETSCII system. 
                 X = 1;
                 Y += 1;
-                FCharInfo.Reversed = false;
+                FCharInfo.Reverse = false;
                 DoGoto = true;
             }
             else if (AText.charCodeAt(i) === 0x0E) {
@@ -3343,7 +3347,7 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x12) {
                 // Reverse on: Selects reverse video text. 
-                FCharInfo.Reversed = true;
+                FCharInfo.Reverse = true;
             }
             else if (AText.charCodeAt(i) === 0x13) {
                 // Home: Next character will be printed in the upper left-hand corner of the screen. 
@@ -3408,7 +3412,7 @@ var TCrt = function () {
             }
             else if (AText.charCodeAt(i) === 0x92) {
                 // Reverse off: De-selects reverse video text. 
-                FCharInfo.Reversed = false;
+                FCharInfo.Reverse = false;
             }
             else if (AText.charCodeAt(i) === 0x93) {
                 // Clears screen of any text, and causes the next character to be printed at the upper left-hand corner of the text screen. 
@@ -3746,7 +3750,7 @@ var TCrtLabel = function (AParent, ALeft, ATop, AWidth, AText, ATextAlign, AFore
     var FText = "";
     var FTextAlign;
 
-    this.DoPaint = function (AForce) {
+    this.PaintCrtLabel = function (AForce) {
         // Draw the message
         switch (FTextAlign) {
             case ContentAlignment.Center:
@@ -3811,7 +3815,7 @@ TCrtLabel.prototype = new TCrtControlSurrogate();
 TCrtLabel.prototype.constructor = TCrtLabel;
 
 TCrtLabel.prototype.Paint = function (AForce) {
-    this.DoPaint();
+    this.PaintCrtLabel();
 };/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -3848,7 +3852,7 @@ var TCrtPanel = function (AParent, ALeft, ATop, AWidth, AHeight, ABorder, AForeC
         }
     });
 
-    this.DoPaint = function (AForce) {
+    this.PaintCrtPanel = function (AForce) {
         // Characters for the box
         var Line;
         var TopLeft;
@@ -3990,7 +3994,7 @@ TCrtPanel.prototype = new TCrtControlSurrogate();
 TCrtPanel.prototype.constructor = TCrtPanel;
 
 TCrtPanel.prototype.Paint = function (AForce) {
-    this.DoPaint();
+    this.PaintCrtPanel();
 };/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -4048,11 +4052,34 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         }
     });
 		
+    this.__defineGetter__("MarqueeAnimationSpeed", function () {
+        return FMarqueeAnimationSpeed;
+    });
+
+    this.__defineSetter__("MarqueeAnimationSpeed", function (AMarqueeAnimationSpeed) {
+        FMarqueeAnimationSpeed = AMarqueeAnimationSpeed;
+    });
+		
+    this.__defineGetter__("Maximum", function () {
+        return FMaximum;
+    });
+
+    this.__defineSetter__("Maximum", function (AMaximum) {
+        if (AMaximum !== FMaximum)
+        {
+            FMaximum = AMaximum;
+            if (FValue > FMaximum) {
+                FValue = FMaximum;
+            }
+            that.Paint(true);
+        }
+    });
+		
     /// <summary>
     /// Re-Draw the bar and percent text.
     /// </summary>
     /// <param name="AForce">When true, the bar and percent will always be Paintn.  When false, the bar and percent will only be Paintn as necessary, which reduces the number of unnecessary Paints (especially when a large maximum is used)</param>
-    this.DoPaint = function (AForce) {
+    this.PaintCrtProgressBar = function (AForce) {
         if (FStyle === ProgressBarStyle.Marquee) {
             if (AForce) {
                 // Erase the old bar
@@ -4128,29 +4155,6 @@ var TCrtProgressBar = function(AParent, ALeft, ATop, AWidth, AStyle) {
         }
     };
 
-    this.__defineGetter__("MarqueeAnimationSpeed", function () {
-        return FMarqueeAnimationSpeed;
-    });
-
-    this.__defineSetter__("MarqueeAnimationSpeed", function (AMarqueeAnimationSpeed) {
-        FMarqueeAnimationSpeed = AMarqueeAnimationSpeed;
-    });
-		
-    this.__defineGetter__("Maximum", function () {
-        return FMaximum;
-    });
-
-    this.__defineSetter__("Maximum", function (AMaximum) {
-        if (AMaximum !== FMaximum)
-        {
-            FMaximum = AMaximum;
-            if (FValue > FMaximum) {
-                FValue = FMaximum;
-            }
-            that.Paint(true);
-        }
-    });
-		
     this.__defineGetter__("PercentPrecision", function () {
         return FPercentPrecision;
     });
@@ -4249,7 +4253,7 @@ TCrtProgressBar.prototype = new TCrtControlSurrogate();
 TCrtProgressBar.prototype.constructor = TCrtProgressBar;
 
 TCrtProgressBar.prototype.Paint = function (AForce) {
-    this.DoPaint();
+    this.PaintCrtProgressBar();
 };/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -4797,10 +4801,18 @@ var TTcpConnection = function () {
 
     // Private variables
     var that = this;
+    var FWasConnected = false;
+
+    // Protected variables
     this.FInputBuffer = null;
     this.FOutputBuffer;
-    this.FWasConnected = false;
     this.FWebSocket = null;
+
+    // Private methods
+    var OnSocketClose = function () { }; // Do nothing
+    var OnSocketError = function (e) { }; // Do nothing
+    var OnSocketOpen = function () { }; // Do nothing
+    var OnSocketMessage = function (e) { }; // Do nothing
 
     this.__defineGetter__("bytesAvailable", function () {
         return FInputBuffer.bytesAvailable;
@@ -4812,18 +4824,26 @@ var TTcpConnection = function () {
         }
     };
 
-    this.connect = function (AHost, APort) {
+    this.connect = function (AHostname, APort, AProxyHostname, AProxyPort) {
+        if (typeof AProxyHostname === 'undefined') AProxyHostname = "";
+        if (typeof AProxyPort === 'undefined') AProxyPort = 11235;
+
         FWasConnected = false;
-        FWebSocket = new WebSocket("ws://" + AHost + ":" + APort);
+
+        if (AProxyHostname === "") {
+            FWebSocket = new WebSocket("ws://" + AHostname + ":" + APort);
+        } else {
+            FWebSocket = new WebSocket("ws://" + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort);
+        }
 
         // Enable binary mode
         FWebSocket.binaryType = 'arraybuffer';
 
         // Set event handlers
-        FWebSocket.onclose = that.OnSocketClose;
-        FWebSocket.onerror = that.OnSocketError;
-        FWebSocket.onmessage = that.OnSocketMessage;
-        FWebSocket.onopen = that.OnSocketOpen;
+        FWebSocket.onclose = OnSocketClose;
+        FWebSocket.onerror = OnSocketError;
+        FWebSocket.onmessage = OnSocketMessage;
+        FWebSocket.onopen = OnSocketOpen;
     };
 
     this.__defineGetter__("connected", function () {
@@ -4834,7 +4854,27 @@ var TTcpConnection = function () {
         return false;
     });
 
-    this.OnSocketClose = function () {
+    this.flushTcpConnection = function () {
+        var ToSendString = FOutputBuffer.toString();
+        var ToSendBytes = [];
+
+        for (i = 0; i < ToSendString.length; i++) {
+            ToSendBytes.push(ToSendString.charCodeAt(i));
+        }
+
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+        FOutputBuffer.clear();
+    };
+
+    this.NegotiateInboundTcpConnection = function (AData) {
+        // No negotiation for raw tcp connection
+        while (AData.bytesAvailable) {
+            var B = AData.readUnsignedByte();
+            FInputBuffer.writeByte(B);
+        }
+    };
+
+    OnSocketClose = function () {
         if (FWasConnected) {
             that.onclose();
         } else {
@@ -4843,16 +4883,16 @@ var TTcpConnection = function () {
         FWasConnected = false;
     };
 
-    this.OnSocketError = function (e) {
+    OnSocketError = function (e) {
         that.onioerror(e);
     };
 
-    this.OnSocketOpen = function () {
+    OnSocketOpen = function () {
         FWasConnected = true;
         that.onconnect();
     };
 
-    this.OnSocketMessage = function (e) {
+    OnSocketMessage = function (e) {
         // Free up some memory if we're at the end of the buffer
         if (FInputBuffer.bytesAvailable === 0) { FInputBuffer.clear(); }
 
@@ -5023,23 +5063,11 @@ var TTcpConnectionSurrogate = function () { };
 TTcpConnectionSurrogate.prototype = TTcpConnection.prototype;
 
 TTcpConnection.prototype.flush = function () {
-    var ToSendString = FOutputBuffer.toString();
-    var ToSendBytes = [];
-
-    for (i = 0; i < ToSendString.length; i++) {
-        ToSendBytes.push(ToSendString.charCodeAt(i));
-    }
-
-    FWebSocket.send(new Uint8Array(ToSendBytes));
-    FOutputBuffer.clear();
+    this.flushTcpConnection();
 };
 
 TTcpConnection.prototype.NegotiateInbound = function (AData) {
-    // No negotiation for raw tcp connection
-    while (AData.bytesAvailable) {
-        var B = AData.readUnsignedByte();
-        FInputBuffer.writeByte(B);
-    }
+    this.NegotiateInboundTcpConnection(AData);
 };/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
@@ -5339,37 +5367,66 @@ var TTelnetConnection = function () {
 
     // Private variables
     var that = this;
-    this.FNegotiatedOptions;
-    this.FNegotiationState;
+    var FNegotiatedOptions;
+    var FNegotiationState;
 
-    this.HandleEcho = function (ACommand) {
+    // Private methods
+    var HandleEcho = function (ACommand) { }; // Do nothing
+    var HandleTerminalType = function () { }; // Do nothing
+    var HandleWindowSize = function () { }; // Do nothing
+    var SendCommand = function (ACommand) { }; // Do nothing
+    var SendDo = function (AOption) { }; // Do nothing
+    var SendDont = function (AOption) { }; // Do nothing
+    var SendResponse = function (ACommand, AOption, ASetting) { }; // Do nothing
+    var SendSubnegotiate = function (AOption) { }; // Do nothing
+    var SendSubnegotiateEnd = function () { }; // Do nothing
+    var SendWill = function (AOption) { }; // Do nothing
+    var SendWont = function (AOption) { }; // Do nothing
+
+    this.flushTelnetConnection = function () {
+        var ToSendString = FOutputBuffer.toString();
+        var ToSendBytes = [];
+
+        // Read 1 byte at a time, doubling up IAC's as necessary
+        for (i = 0; i < ToSendString.length; i++) {
+            ToSendBytes.push(ToSendString.charCodeAt(i));
+            if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
+                ToSendBytes.push(TelnetCommand.IAC);
+            }
+        }
+
+        FWebSocket.send(new Uint8Array(ToSendBytes));
+        FOutputBuffer.clear();
+    };
+
+    HandleEcho = function (ACommand) {
         switch (ACommand) {
             case TelnetCommand.Do:
                 FLocalEcho = true;
-                that.SendWill(TelnetOption.Echo);
+                SendWill(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_ON));
                 break;
             case TelnetCommand.Dont:
                 FLocalEcho = false;
-                that.SendWont(TelnetOption.Echo);
+                SendWont(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_OFF));
                 break;
             case TelnetCommand.Will:
                 FLocalEcho = false;
-                that.SendDo(TelnetOption.Echo);
+                SendDo(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_OFF));
                 break;
             case TelnetCommand.Wont:
                 FLocalEcho = true;
-                that.SendDont(TelnetOption.Echo);
+                SendDont(TelnetOption.Echo);
                 //TODO dispatchEvent(new Event(ECHO_ON));
                 break;
         }
     };
 
-    this.HandleTerminalType = function () {
-        that.SendWill(TelnetOption.TerminalType);
-        that.SendSubnegotiate(TelnetOption.TerminalType);
+    HandleTerminalType = function () {
+        SendWill(TelnetOption.TerminalType);
+        SendSubnegotiate(TelnetOption.TerminalType);
 
         var ToSendBytes = [];
         ToSendBytes.push(0); // IS
@@ -5380,12 +5437,12 @@ var TTelnetConnection = function () {
         }
         FWebSocket.send(new Uint8Array(ToSendBytes));
 
-        that.SendSubnegotiateEnd();
+        SendSubnegotiateEnd();
     };
 
-    this.HandleWindowSize = function () {
-        that.SendWill(TelnetOption.WindowSize);
-        that.SendSubnegotiate(TelnetOption.WindowSize);
+    HandleWindowSize = function () {
+        SendWill(TelnetOption.WindowSize);
+        SendSubnegotiate(TelnetOption.WindowSize);
 
         var Size = [];
         Size[0] = (FWindowSize.x >> 8) & 0xff;
@@ -5400,30 +5457,121 @@ var TTelnetConnection = function () {
         }
         FWebSocket.send(new Uint8Array(ToSendBytes));
 
-        that.SendSubnegotiateEnd();
+        SendSubnegotiateEnd();
     };
 
     this.__defineSetter__("LocalEcho", function (ALocalEcho) {
         FLocalEcho = ALocalEcho;
         if (that.connected) {
             if (FLocalEcho) {
-                that.SendWill(TelnetOption.Echo);
+                SendWill(TelnetOption.Echo);
             } else {
-                that.SendWont(TelnetOption.Echo);
+                SendWont(TelnetOption.Echo);
             }
         }
     });
 
+    this.NegotiateInboundTelnetConnection = function (AData) {
+        // Get any waiting data and handle negotiation
+        while (AData.bytesAvailable) {
+            var B = AData.readUnsignedByte();
+
+            if (FNegotiationState == TelnetNegotiationState.Data) {
+                if (B == TelnetCommand.IAC) {
+                    FNegotiationState = TelnetNegotiationState.IAC;
+                }
+                else {
+                    FInputBuffer.writeByte(B);
+                }
+            }
+            else if (FNegotiationState == TelnetNegotiationState.IAC) {
+                if (B == TelnetCommand.IAC) {
+                    FNegotiationState = TelnetNegotiationState.Data;
+                    FInputBuffer.writeByte(B);
+                }
+                else {
+                    switch (B) {
+                        case TelnetCommand.NoOperation:
+                        case TelnetCommand.DataMark:
+                        case TelnetCommand.Break:
+                        case TelnetCommand.InterruptProcess:
+                        case TelnetCommand.AbortOutput:
+                        case TelnetCommand.AreYouThere:
+                        case TelnetCommand.EraseCharacter:
+                        case TelnetCommand.EraseLine:
+                        case TelnetCommand.GoAhead:
+                            // We recognize, but ignore these for now
+                            FNegotiationState = TelnetNegotiationState.Data;
+                            break;
+                        case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
+                        case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
+                        case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
+                        case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
+                        default: FNegotiationState = TelnetNegotiationState.Data; break;
+                    }
+                }
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Do) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendWill(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
+                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
+                    case TelnetOption.TerminalType: HandleTerminalType(); break;
+                    case TelnetOption.WindowSize: HandleWindowSize(); break;
+                    case TelnetOption.LineMode: SendWont(B); break;
+                    default: SendWont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Dont) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendWill(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Dont); break;
+                    case TelnetOption.SuppressGoAhead: SendWill(B); break;
+                    case TelnetOption.WindowSize: SendWont(B); break;
+                    case TelnetOption.LineMode: SendWont(B); break;
+                    default: SendWont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Will) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendDo(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Will); break;
+                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.WindowSize: SendDont(B); break;
+                    case TelnetOption.LineMode: SendDont(B); break;
+                    default: SendDont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else if (FNegotiationState == TelnetNegotiationState.Wont) {
+                switch (B) {
+                    case TelnetOption.TransmitBinary: SendDo(B); break;
+                    case TelnetOption.Echo: HandleEcho(TelnetCommand.Wont); break;
+                    case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.WindowSize: SendDont(B); break;
+                    case TelnetOption.LineMode: SendDont(B); break;
+                    default: SendDont(B); break;
+                }
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+            else {
+                FNegotiationState = TelnetNegotiationState.Data;
+            }
+        }
+    };
+
     // TODO Need NegotiateOutbound
 
-    this.SendCommand = function (ACommand) {
+    SendCommand = function (ACommand) {
         var ToSendBytes = [];
         ToSendBytes.push(TelnetCommand.IAC);
         ToSendBytes.push(ACommand);
         FWebSocket.send(new Uint8Array(ToSendBytes));
     };
 
-    this.SendDo = function (AOption) {
+    SendDo = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Do) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -5437,7 +5585,7 @@ var TTelnetConnection = function () {
         }
     };
 
-    this.SendDont = function (AOption) {
+    SendDont = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Dont) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -5451,27 +5599,27 @@ var TTelnetConnection = function () {
         }
     };
 
-    this.SendResponse = function (ACommand, AOption, ASetting) {
+    SendResponse = function (ACommand, AOption, ASetting) {
         if (ASetting) {
             // We want to do the option
             switch (ACommand) {
-                case TelnetCommand.Do: that.SendWill(AOption); break;
-                case TelnetCommand.Dont: that.SendWill(AOption); break;
-                case TelnetCommand.Will: that.SendDont(AOption); break;
-                case TelnetCommand.Wont: that.SendDont(AOption); break;
+                case TelnetCommand.Do: SendWill(AOption); break;
+                case TelnetCommand.Dont: SendWill(AOption); break;
+                case TelnetCommand.Will: SendDont(AOption); break;
+                case TelnetCommand.Wont: SendDont(AOption); break;
             }
         } else {
             // We don't want to do the option
             switch (ACommand) {
-                case TelnetCommand.Do: that.SendWont(AOption); break;
-                case TelnetCommand.Dont: that.SendWont(AOption); break;
-                case TelnetCommand.Will: that.SendDo(AOption); break;
-                case TelnetCommand.Wont: that.SendDo(AOption); break;
+                case TelnetCommand.Do: SendWont(AOption); break;
+                case TelnetCommand.Dont: SendWont(AOption); break;
+                case TelnetCommand.Will: SendDo(AOption); break;
+                case TelnetCommand.Wont: SendDo(AOption); break;
             }
         }
     };
 
-    this.SendSubnegotiate = function (AOption) {
+    SendSubnegotiate = function (AOption) {
         var ToSendBytes = [];
         ToSendBytes.push(TelnetCommand.IAC);
         ToSendBytes.push(TelnetCommand.Subnegotiation);
@@ -5479,14 +5627,14 @@ var TTelnetConnection = function () {
         FWebSocket.send(new Uint8Array(ToSendBytes));
     };
 
-    this.SendSubnegotiateEnd = function () {
+    SendSubnegotiateEnd = function () {
         var ToSendBytes = [];
         ToSendBytes.push(TelnetCommand.IAC);
         ToSendBytes.push(TelnetCommand.EndSubnegotiation);
         FWebSocket.send(new Uint8Array(ToSendBytes));
     };
 
-    this.SendWill = function (AOption) {
+    SendWill = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Will) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -5500,7 +5648,7 @@ var TTelnetConnection = function () {
         }
     };
 
-    this.SendWont = function (AOption) {
+    SendWont = function (AOption) {
         if (FNegotiatedOptions[AOption] == TelnetCommand.Wont) {
             // Already negotiated this option, don't go into a negotiation storm!
         } else {
@@ -5517,7 +5665,7 @@ var TTelnetConnection = function () {
     this.__defineSetter__("WindowSize", function (AWindowSize) {
         FWindowSize = AWindowSize;
         if (FNegotiatedOptions[TelnetOption.WindowSize] == TelnetCommand.Will) {
-            that.HandleWindowSize();
+            HandleWindowSize();
         }
     });
 
@@ -5535,114 +5683,12 @@ TTelnetConnection.prototype = new TTcpConnectionSurrogate();
 TTelnetConnection.prototype.constructor = TTelnetConnection;
 
 TTelnetConnection.prototype.flush = function () {
-    var that = this;
-    var ToSendString = FOutputBuffer.toString();
-    var ToSendBytes = [];
-
-    // Read 1 byte at a time, doubling up IAC's as necessary
-    for (i = 0; i < ToSendString.length; i++) {
-        ToSendBytes.push(ToSendString.charCodeAt(i));
-        if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
-            ToSendBytes.push(TelnetCommand.IAC);
-        }
-    }
-
-    FWebSocket.send(new Uint8Array(ToSendBytes));
-    FOutputBuffer.clear();
-};
+    this.flushTelnetConnection();
+}
 
 TTelnetConnection.prototype.NegotiateInbound = function (AData) {
-    var that = this;
-
-    // Get any waiting data and handle negotiation
-    while (AData.bytesAvailable) {
-        var B = AData.readUnsignedByte();
-
-        if (FNegotiationState == TelnetNegotiationState.Data) {
-            if (B == TelnetCommand.IAC) {
-                FNegotiationState = TelnetNegotiationState.IAC;
-            }
-            else {
-                FInputBuffer.writeByte(B);
-            }
-        }
-        else if (FNegotiationState == TelnetNegotiationState.IAC) {
-            if (B == TelnetCommand.IAC) {
-                FNegotiationState = TelnetNegotiationState.Data;
-                FInputBuffer.writeByte(B);
-            }
-            else {
-                switch (B) {
-                    case TelnetCommand.NoOperation:
-                    case TelnetCommand.DataMark:
-                    case TelnetCommand.Break:
-                    case TelnetCommand.InterruptProcess:
-                    case TelnetCommand.AbortOutput:
-                    case TelnetCommand.AreYouThere:
-                    case TelnetCommand.EraseCharacter:
-                    case TelnetCommand.EraseLine:
-                    case TelnetCommand.GoAhead:
-                        // We recognize, but ignore these for now
-                        FNegotiationState = TelnetNegotiationState.Data;
-                        break;
-                    case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
-                    case TelnetCommand.Dont: FNegotiationState = TelnetNegotiationState.Dont; break;
-                    case TelnetCommand.Will: FNegotiationState = TelnetNegotiationState.Will; break;
-                    case TelnetCommand.Wont: FNegotiationState = TelnetNegotiationState.Wont; break;
-                    default: FNegotiationState = TelnetNegotiationState.Data; break;
-                }
-            }
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Do) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendWill(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Do); break;
-                case TelnetOption.SuppressGoAhead: that.SendWill(B); break;
-                case TelnetOption.TerminalType: that.HandleTerminalType(); break;
-                case TelnetOption.WindowSize: that.HandleWindowSize(); break;
-                case TelnetOption.LineMode: that.SendWont(B); break;
-                default: that.SendWont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Dont) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendWill(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Dont); break;
-                case TelnetOption.SuppressGoAhead: that.SendWill(B); break;
-                case TelnetOption.WindowSize: that.SendWont(B); break;
-                case TelnetOption.LineMode: that.SendWont(B); break;
-                default: that.SendWont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Will) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendDo(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Will); break;
-                case TelnetOption.SuppressGoAhead: that.SendDo(B); break;
-                case TelnetOption.WindowSize: that.SendDont(B); break;
-                case TelnetOption.LineMode: that.SendDont(B); break;
-                default: that.SendDont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else if (FNegotiationState == TelnetNegotiationState.Wont) {
-            switch (B) {
-                case TelnetOption.TransmitBinary: that.SendDo(B); break;
-                case TelnetOption.Echo: that.HandleEcho(TelnetCommand.Wont); break;
-                case TelnetOption.SuppressGoAhead: that.SendDo(B); break;
-                case TelnetOption.WindowSize: that.SendDont(B); break;
-                case TelnetOption.LineMode: that.SendDont(B); break;
-                default: that.SendDont(B); break;
-            }
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-        else {
-            FNegotiationState = TelnetNegotiationState.Data;
-        }
-    }
-};/*
+    this.NegotiateInboundTelnetConnection(AData);
+}/*
   HtmlTerm: An HTML5 WebSocket client
   Copyright (C) 2009-2013  Rick Parrish, R&M Software
 
@@ -6603,6 +6649,7 @@ var THtmlTerm = function () {
     var FBitsPerSecond = 115200;
     var FBlink = true;
     var FCodePage = "437";
+    var FConnectionType = "ansi-bbs";
     var FEnter = "\r";
     var FFontHeight = 16;
     var FFontWidth = 9;
@@ -6616,7 +6663,6 @@ var THtmlTerm = function () {
     var FSplashScreen = "G1swbRtbMkobWzA7MEgbWzE7NDQ7MzRt2sTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEG1swOzQ0OzMwbb8bWzBtDQobWzE7NDQ7MzRtsyAgG1szN21XZWxjb21lISAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzA7NDQ7MzBtsxtbMG0NChtbMTs0NDszNG3AG1swOzQ0OzMwbcTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE2RtbMG0NCg0KG1sxbSAbWzBtIBtbMTs0NDszNG3axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzA7NDQ7MzBtvxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMzBt29vb29vb29vb29vb29vb29vb29vb2xtbMzRt29vb29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29vb29vb29vb29vb29vb29vb29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vb29sbWzFt29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb29vbG1sxbdvb29sbWzBt29sbWzE7MzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29vb2xtbMG3b29vb29vb2xtbMW3b29vbG1swbdvbG1sxbdvbG1szMG3b2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbMG0NCiAgG1sxOzQ0OzM0bbMbWzA7MzRt29vb2xtbMTszMG3b29vbG1swbdvb29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29sbWzMwbdvbG1swOzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1swbQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvb29sbWzBt29vb2xtbMW3b29vbG1swbdvbG1sxbdvb29vb2xtbMzBt29sbWzA7MzBt29sbWzM0bdvb29sbWzQ0OzMwbbMbWzQwOzM3bQ0KICAbWzE7NDQ7MzRtsxtbMDszNG3b29vbG1sxOzMwbdvbG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb2xtbMDszMG3b2xtbMzRt29vb2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1swOzM0bdvb29sbWzE7MzBt29sbWzBt29vb29vb29vb29vb29vb29vb29sbWzMwbdvbG1szNG3b29vbG1s0NDszMG2zG1s0MDszN20NCiAgG1sxOzQ0OzM0bbMbWzA7MzBt29vb29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbNDA7MzdtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN23axMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMQbWzMwbb8bWzBtDQogIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29sbWzA7MzBt29vb29vb29vb2xtbMW3b2xtbMDszMG3b2xtbNDRtsxtbNDA7MzdtIBtbMzRtIBtbMTs0NzszN22zICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAbWzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1s0MDszMG3b2xtbMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szMG3b2xtbNDRtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAbWzM0bUh0bWxUZXJtIC0tIFRlbG5ldCBmb3IgdGhlIFdlYiAgICAgG1szMG2zG1swbQ0KG1sxbSAbWzBtIBtbMTs0NDszNG2zG1swOzMwbdvbG1sxbdvb29vb29vb29vb29vb29vb29vb29vb2xtbMDszMG3b29vb29sbWzQ0bbMbWzBtIBtbMzRtIBtbMTs0NzszN22zICAgICAbWzA7NDc7MzRtV2ViIGJhc2VkIEJCUyB0ZXJtaW5hbCBjbGllbnQgICAgG1sxOzMwbbMbWzBtDQogIBtbMTs0NDszNG2zG1swOzM0bdvbG1szMG3b29vb29vb29vb29vb29vb29vb29vb29vb29vbG1szNG3b2xtbNDQ7MzBtsxtbMG0gG1szNG0gG1sxOzQ3OzM3bbMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBtbMzBtsxtbMG0NCiAgG1sxOzQ0OzM0bcAbWzA7NDQ7MzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbSAbWzM0bSAbWzE7NDc7MzdtwBtbMzBtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTZG1swbQ0KDQobWzExQxtbMTszMm1Db3B5cmlnaHQgKEMpIDIwMDAtMjAxNCBSJk0gU29mdHdhcmUuICBBbGwgUmlnaHRzIFJlc2VydmVkDQobWzA7MzRtxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExA==";
 
     // Private methods
-    var LoadFile = function (f, len) { }; // Do nothing
     var OnAnsiESC5n = function (AEvent) { }; // Do nothing
     var OnAnsiESC6n = function (AEvent) { }; // Do nothing
     var OnAnsiESC255n = function (AEvent) { }; // Do nothing
@@ -6632,6 +6678,7 @@ var THtmlTerm = function () {
     var OnTimer = function (e) { }; // Do nothing
     var OnUploadComplete = function (e) { }; // Do nothing
     var ShowSaveFilesButton = function () { }; // Do nothing
+    var UploadFile = function (f, len) { }; // Do nothing
 
     this.Init = function (AContainerID) {
         // Ensure we have our container
@@ -6725,11 +6772,24 @@ var THtmlTerm = function () {
         FCodePage = ACodePage;
     });
 
+    this.__defineGetter__("ConnectionType", function () {
+        return FConnectionType;
+    });
+
+    this.__defineSetter__("ConnectionType", function (AConnectionType) {
+        FConnectionType = AConnectionType;
+    });
+
     this.Connect = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
 
         // Create new connection
-        FConnection = new TTelnetConnection(); // TODO Could be TRLoginConnection
+        switch (FConnectionType) {
+            case "rlogin": FConnection = new TRLoginConnection(); break;
+            case "tcp": FConnection = new TTcpConnection(); break;
+            default: FConnection = new TTelnetConnection(); break;            
+        }
+        
         FConnection.onclose = OnConnectionClose;
         FConnection.onconnect = OnConnectionConnect;
         FConnection.onioerror = OnConnectionIOError;
@@ -6747,7 +6807,7 @@ var THtmlTerm = function () {
         } else {
             Crt.FastWrite(" Connecting to                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
             Crt.FastWrite(FHostname + ":" + FPort + " via proxy", 16, FScreenRows, new TCharInfo(' ', 31, false, false), true);
-            FConnection.connect(FProxyHostname, FProxyPort);
+            FConnection.connect(FHostname, FPort, FProxyHostname, FProxyPort);
         }
     };
 
@@ -7046,40 +7106,6 @@ var THtmlTerm = function () {
         FTimer = setInterval(OnTimer, 50);
     };
 
-    // TODO Test if this is still needed
-    LoadFile = function (AFile, AFileCount) {
-        var reader = new FileReader();
-
-        // Closure to capture the file information.
-        reader.onload = function (e) {
-            var FR = new TFileRecord(AFile.name, AFile.size);
-            FR.data.writeString(e.target.result);
-            FR.data.position = 0;
-            FYModemSend.Upload(FR, AFileCount);
-        };
-
-        // Read in the image file as a data URL.
-        reader.readAsBinaryString(AFile);
-    };
-
-    this.Upload = function (AFiles) {
-        if (FConnection === null) { return; }
-        if (!FConnection.connected) { return; }
-
-        // Get the YModemSend class ready to go
-        FYModemSend = new TYModemSend(FConnection);
-
-        // Setup the listeners
-        clearInterval(FTimer);
-        FYModemSend.ontransfercomplete = OnUploadComplete;
-
-        // Loop through the FileList and prep them for upload
-        var i;
-        for (i = 0; i < AFiles.length; i++) {
-            LoadFile(AFiles[i], AFiles.length);
-        }
-    };
-
     this.__defineGetter__("Port", function () {
         return FPort;
     });
@@ -7143,5 +7169,39 @@ var THtmlTerm = function () {
     this.__defineSetter__("SplashScreen", function (ASplashScreen) {
         FSplashScreen = ASplashScreen;
     });
+
+    this.Upload = function (AFiles) {
+        if (FConnection === null) { return; }
+        if (!FConnection.connected) { return; }
+
+        // Get the YModemSend class ready to go
+        FYModemSend = new TYModemSend(FConnection);
+
+        // Setup the listeners
+        clearInterval(FTimer);
+        FYModemSend.ontransfercomplete = OnUploadComplete;
+
+        // Loop through the FileList and prep them for upload
+        var i;
+        for (i = 0; i < AFiles.length; i++) {
+            UploadFile(AFiles[i], AFiles.length);
+        }
+    };
+
+    UploadFile = function (AFile, AFileCount) {
+        trace(AFile);
+        var reader = new FileReader();
+
+        // Closure to capture the file information.
+        reader.onload = function (e) {
+            var FR = new TFileRecord(AFile.name, AFile.size);
+            FR.data.writeString(e.target.result);
+            FR.data.position = 0;
+            FYModemSend.Upload(FR, AFileCount);
+        };
+
+        // Read in the image file as a data URL.
+        reader.readAsBinaryString(AFile);
+    };
 };
 HtmlTerm = new THtmlTerm();

@@ -97,6 +97,10 @@ COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\html-template\
 COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\bin-debug\
 COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\bin-release\
 COPY Release\HtmlTerm.font-atari.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
+COPY Release\HtmlTerm.font-c64.js ..\ftelnet\flash\html-template\
+COPY Release\HtmlTerm.font-c64.js ..\ftelnet\flash\bin-debug\
+COPY Release\HtmlTerm.font-c64.js ..\ftelnet\flash\bin-release\
+COPY Release\HtmlTerm.font-c64.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
 COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\html-template\
 COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-debug\
 COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-release\

@@ -34,6 +34,7 @@ var THtmlTerm = function () {
     var FBitsPerSecond = 115200;
     var FBlink = true;
     var FCodePage = "437";
+    var FConnectionType = "telnet";
     var FEnter = "\r";
     var FFontHeight = 16;
     var FFontWidth = 9;
@@ -156,11 +157,24 @@ var THtmlTerm = function () {
         FCodePage = ACodePage;
     });
 
+    this.__defineGetter__("ConnectionType", function () {
+        return FConnectionType;
+    });
+
+    this.__defineSetter__("ConnectionType", function (AConnectionType) {
+        FConnectionType = AConnectionType;
+    });
+
     this.Connect = function () {
         if ((FConnection !== null) && (FConnection.connected)) { return; }
 
         // Create new connection
-        FConnection = new TTelnetConnection(); // TODO Could be TTcpConnection or TRLoginConnection
+        switch (FConnectionType) {
+            case "rlogin": FConnection = new TRLoginConnection(); break;
+            case "tcp": FConnection = new TTcpConnection(); break;
+            default: FConnection = new TTelnetConnection(); break;            
+        }
+        
         FConnection.onclose = OnConnectionClose;
         FConnection.onconnect = OnConnectionConnect;
         FConnection.onioerror = OnConnectionIOError;
@@ -178,7 +192,7 @@ var THtmlTerm = function () {
         } else {
             Crt.FastWrite(" Connecting to                                                                  ", 1, FScreenRows, new TCharInfo(' ', 31, false, false), true);
             Crt.FastWrite(FHostname + ":" + FPort + " via proxy", 16, FScreenRows, new TCharInfo(' ', 31, false, false), true);
-            FConnection.connect(FProxyHostname, FProxyPort);
+            FConnection.connect(FHostname, FPort, FProxyHostname, FProxyPort);
         }
     };
 

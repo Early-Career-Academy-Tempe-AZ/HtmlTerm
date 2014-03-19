@@ -49,9 +49,17 @@ var TTcpConnection = function () {
         }
     };
 
-    this.connect = function (AHost, APort) {
+    this.connect = function (AHostname, APort, AProxyHostname, AProxyPort) {
+        if (typeof AProxyHostname === 'undefined') AProxyHostname = "";
+        if (typeof AProxyPort === 'undefined') AProxyPort = 11235;
+
         FWasConnected = false;
-        FWebSocket = new WebSocket("ws://" + AHost + ":" + APort);
+
+        if (AProxyHostname === "") {
+            FWebSocket = new WebSocket("ws://" + AHostname + ":" + APort);
+        } else {
+            FWebSocket = new WebSocket("ws://" + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort);
+        }
 
         // Enable binary mode
         FWebSocket.binaryType = 'arraybuffer';

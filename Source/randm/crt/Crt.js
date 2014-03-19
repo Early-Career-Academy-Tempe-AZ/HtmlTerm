@@ -433,6 +433,10 @@ var TCrt = function () {
         }
     };
 
+    this.__defineGetter__("Font", function () {
+        return FFont;
+    });
+
     this.GetCharInfo = function () {
         return FCharInfo;
     };
