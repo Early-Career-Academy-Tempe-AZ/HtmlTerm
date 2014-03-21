@@ -110,7 +110,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
         var Left = FLeft;
         var Top = FTop;
         var P = FParent;
-        while (P != null) {
+        while (P !== null) {
             Left += P.Left;
             Top += P.Top;
             P = P.FParent;
@@ -122,7 +122,7 @@ var TCrtControl = function (AParent, ALeft, ATop, AWidth, AHeight) {
         var Left = FLeft;
         var Top = FTop;
         var P = FParent;
-        while (P != null) {
+        while (P !== null) {
             Left += P.Left;
             Top += P.Top;
             P = P.FParent;

@@ -34,7 +34,7 @@ var TTcpConnection = function () {
 
     // Protected variables
     this.FInputBuffer = null;
-    this.FOutputBuffer;
+    this.FOutputBuffer = null;
     this.FWebSocket = null;
 
     // Private methods
@@ -44,62 +44,63 @@ var TTcpConnection = function () {
     var OnSocketMessage = function (e) { }; // Do nothing
 
     this.__defineGetter__("bytesAvailable", function () {
-        return FInputBuffer.bytesAvailable;
+        return that.FInputBuffer.bytesAvailable;
     });
 
     this.close = function () {
-        if (FWebSocket) {
-            FWebSocket.close();
+        if (that.FWebSocket) {
+            that.FWebSocket.close();
         }
     };
 
     this.connect = function (AHostname, APort, AProxyHostname, AProxyPort) {
-        if (typeof AProxyHostname === 'undefined') AProxyHostname = "";
-        if (typeof AProxyPort === 'undefined') AProxyPort = 11235;
+        if (AProxyHostname === 'undefined') { AProxyHostname = ""; }
+        if (AProxyPort === 'undefined') { AProxyPort = 11235; }
 
         FWasConnected = false;
 
         if (AProxyHostname === "") {
-            FWebSocket = new WebSocket("ws://" + AHostname + ":" + APort);
+            that.FWebSocket = new WebSocket("ws://" + AHostname + ":" + APort);
         } else {
-            FWebSocket = new WebSocket("ws://" + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort);
+            that.FWebSocket = new WebSocket("ws://" + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort);
         }
 
         // Enable binary mode
-        FWebSocket.binaryType = 'arraybuffer';
+        that.FWebSocket.binaryType = 'arraybuffer';
 
         // Set event handlers
-        FWebSocket.onclose = OnSocketClose;
-        FWebSocket.onerror = OnSocketError;
-        FWebSocket.onmessage = OnSocketMessage;
-        FWebSocket.onopen = OnSocketOpen;
+        that.FWebSocket.onclose = OnSocketClose;
+        that.FWebSocket.onerror = OnSocketError;
+        that.FWebSocket.onmessage = OnSocketMessage;
+        that.FWebSocket.onopen = OnSocketOpen;
     };
 
     this.__defineGetter__("connected", function () {
-        if (FWebSocket) {
-            return (FWebSocket.readyState === FWebSocket.OPEN);
+        if (that.FWebSocket) {
+            return (that.FWebSocket.readyState === that.FWebSocket.OPEN);
         }
 
         return false;
     });
 
     this.flushTcpConnection = function () {
-        var ToSendString = FOutputBuffer.toString();
+        var ToSendString = that.FOutputBuffer.toString();
         var ToSendBytes = [];
 
+        var i;
         for (i = 0; i < ToSendString.length; i++) {
             ToSendBytes.push(ToSendString.charCodeAt(i));
         }
 
-        FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
-        FOutputBuffer.clear();
+        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        that.FOutputBuffer.clear();
     };
 
     this.NegotiateInboundTcpConnection = function (AData) {
         // No negotiation for raw tcp connection
         while (AData.bytesAvailable) {
             var B = AData.readUnsignedByte();
-            FInputBuffer.writeByte(B);
+            that.FInputBuffer.writeByte(B);
         }
     };
 
@@ -123,18 +124,19 @@ var TTcpConnection = function () {
 
     OnSocketMessage = function (e) {
         // Free up some memory if we're at the end of the buffer
-        if (FInputBuffer.bytesAvailable === 0) { FInputBuffer.clear(); }
+        if (that.FInputBuffer.bytesAvailable === 0) { that.FInputBuffer.clear(); }
 
         // Save the old position and set the new position to the end of the buffer
-        var OldPosition = FInputBuffer.position;
-        FInputBuffer.position = FInputBuffer.length;
+        var OldPosition = that.FInputBuffer.position;
+        that.FInputBuffer.position = that.FInputBuffer.length;
 
         var Data = new ByteArray();
 
         // Write the incoming message to the input buffer
         if (e.data instanceof ArrayBuffer) {
             var u8 = new Uint8Array(e.data);
-            for (var i = 0; i < u8.length; i++) {
+            var i;
+            for (i = 0; i < u8.length; i++) {
                 Data.writeByte(u8[i]);
             }
         } else {
@@ -145,127 +147,127 @@ var TTcpConnection = function () {
         that.NegotiateInbound(Data);
 
         // Restore the old buffer position
-        FInputBuffer.position = OldPosition;
+        that.FInputBuffer.position = OldPosition;
     };
 
     // Remap all the read* functions to operate on our input buffer instead
     this.readBoolean = function () {
-        return FInputBuffer.readBoolean();
+        return that.FInputBuffer.readBoolean();
     };
 
     this.readByte = function () {
-        return FInputBuffer.readByte();
+        return that.FInputBuffer.readByte();
     };
 
     this.readBytes = function (ABytes, AOffset, ALength) {
-        return FInputBuffer.readBytes(ABytes, AOffset, ALength);
+        return that.FInputBuffer.readBytes(ABytes, AOffset, ALength);
     };
 
     this.readDouble = function () {
-        return FInputBuffer.readDouble();
+        return that.FInputBuffer.readDouble();
     };
 
     this.readFloat = function () {
-        return FInputBuffer.readFloat();
+        return that.FInputBuffer.readFloat();
     };
 
     this.readInt = function () {
-        return FInputBuffer.readInt();
+        return that.FInputBuffer.readInt();
     };
 
     this.readMultiByte = function (ALength, ACharSet) {
-        return FInputBuffer.readMultiByte(ALength, ACharSet);
+        return that.FInputBuffer.readMultiByte(ALength, ACharSet);
     };
 
     this.readObject = function () {
-        return FInputBuffer.readObject();
+        return that.FInputBuffer.readObject();
     };
 
     this.readShort = function () {
-        return FInputBuffer.readShort();
+        return that.FInputBuffer.readShort();
     };
 
     this.readString = function (ALength) {
-        return FInputBuffer.readString();
+        return that.FInputBuffer.readString();
     };
 
     this.readUnsignedByte = function () {
-        return FInputBuffer.readUnsignedByte();
+        return that.FInputBuffer.readUnsignedByte();
     };
 
     this.readUnsignedInt = function () {
-        return FInputBuffer.readUnsignedInt();
+        return that.FInputBuffer.readUnsignedInt();
     };
 
     this.readUnsignedShort = function () {
-        return FInputBuffer.readUnsignedShort();
+        return that.FInputBuffer.readUnsignedShort();
     };
 
     this.readUTF = function () {
-        return FInputBuffer.readUTF();
+        return that.FInputBuffer.readUTF();
     };
 
     this.readUTFBytes = function (ALength) {
-        return FInputBuffer.readUTFBytes(ALength);
+        return that.FInputBuffer.readUTFBytes(ALength);
     };
 
     // Remap all the write* functions to operate on our output buffer instead
     this.writeBoolean = function (AValue) {
-        FOutputBuffer.writeBoolean(AValue);
+        that.FOutputBuffer.writeBoolean(AValue);
     };
 
     this.writeByte = function (AValue) {
-        FOutputBuffer.writeByte(AValue);
+        that.FOutputBuffer.writeByte(AValue);
     };
 
     this.writeBytes = function (ABytes, AOffset, ALength) {
-        FOutputBuffer.writeBytes(ABytes, AOffset, ALength);
+        that.FOutputBuffer.writeBytes(ABytes, AOffset, ALength);
     };
 
     this.writeDouble = function (AValue) {
-        FOutputBuffer.writeDouble(AValue);
+        that.FOutputBuffer.writeDouble(AValue);
     };
 
     this.writeFloat = function (AValue) {
-        FOutputBuffer.writeFloat(AValue);
+        that.FOutputBuffer.writeFloat(AValue);
     };
 
     this.writeInt = function (AValue) {
-        FOutputBuffer.writeInt(AValue);
+        that.FOutputBuffer.writeInt(AValue);
     };
 
     this.writeMultiByte = function (AValue, ACharSet) {
-        FOutputBuffer.writeMultiByte(AValue, ACharSet);
+        that.FOutputBuffer.writeMultiByte(AValue, ACharSet);
     };
 
     this.writeObject = function (AObject) {
-        FOutputBuffer.writeObject(AObject);
+        that.FOutputBuffer.writeObject(AObject);
     };
 
     this.writeShort = function (AValue) {
-        FOutputBuffer.writeShort(AValue);
+        that.FOutputBuffer.writeShort(AValue);
     };
 
     this.writeString = function (AText) {
-        FOutputBuffer.writeString(AText);
+        that.FOutputBuffer.writeString(AText);
         that.flush();
     };
 
     this.writeUnsignedInt = function (AValue) {
-        FOutputBuffer.writeUnsignedInt(AValue);
+        that.FOutputBuffer.writeUnsignedInt(AValue);
     };
 
     this.writeUTF = function (AValue) {
-        FOutputBuffer.writeUTF(AValue);
+        that.FOutputBuffer.writeUTF(AValue);
     };
 
     this.writeUTFBytes = function (AValue) {
-        FOutputBuffer.writeUTFBytes(AValue);
+        that.FOutputBuffer.writeUTFBytes(AValue);
     };
 
     // Constructor
-    FInputBuffer = new ByteArray();
-    FOutputBuffer = new ByteArray();
+    that.FInputBuffer = new ByteArray();
+    that.FOutputBuffer = new ByteArray();
 };
 
 var TTcpConnectionSurrogate = function () { };

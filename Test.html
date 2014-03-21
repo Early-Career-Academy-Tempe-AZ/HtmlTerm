@@ -131,7 +131,8 @@
 
         function HighlightKey(className, lit) {
             var Keys = document.getElementsByClassName(className);
-            for (var i = 0; i < Keys.length; i++) {
+            var i;
+            for (i = 0; i < Keys.length; i++) {
                 Keys[i].style.color = lit ? "#00ff00" : "#eee";
             }
         }
@@ -145,7 +146,8 @@
 
         function VirtualKeyboard_Init() {
             // KeyCode to CharCode mapping
-            for (var i = 65; i <= 90; i++) {
+            var i;
+            for (i = 65; i <= 90; i++) {
                 FCharCodes[i] = { Normal: i + 32, Shifted: i };
             }
             FCharCodes[192] = { Normal: 96, Shifted: 126 }; // `
@@ -172,7 +174,8 @@
 
             // Handle click events for all keys
             var Keys = document.getElementsByClassName("key");
-            for (var i = 0; i < Keys.length; i++) {
+            var i;
+            for (i = 0; i < Keys.length; i++) {
                 if (Keys[i].addEventListener) {  // all browsers except IE before version 9
                     var KeyCode = Keys[i].getAttribute("data-keycode");
                     if (FCharCodes[KeyCode]) {

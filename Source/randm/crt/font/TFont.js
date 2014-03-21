@@ -86,12 +86,14 @@ var TFont = function () {
             FCharMap[FCharMapKey] = FContext.getImageData(ACharCode * FSize.x, 0, FSize.x, FSize.y);
 
             // Now colour the character
+            var Back;
+            var Fore;
             if (FCodePage.indexOf("PETSCII") === 0) {
-                var Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                var Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
+                Back = that.PETSCII_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                Fore = that.PETSCII_COLOURS[(ACharInfo.Attr & 0x0F)];
             } else {
-                var Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
-                var Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
+                Back = that.ANSI_COLOURS[(ACharInfo.Attr & 0xF0) >> 4];
+                Fore = that.ANSI_COLOURS[(ACharInfo.Attr & 0x0F)];
             }
 
             // Reverse if necessary

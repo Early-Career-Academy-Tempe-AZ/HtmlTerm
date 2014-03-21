@@ -20,9 +20,6 @@ ECHO // HtmlTerm.js > Release\HtmlTerm.js
 
 TYPE Source\ImpliedGlobals.js >> Release\HtmlTerm.js
 
-TYPE Source\Blob.js >> Release\HtmlTerm.js
-TYPE Source\FileSaver.js >> Release\HtmlTerm.js
-
 TYPE Source\randm\actionscript\ByteArray.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\FileReference.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\Keyboard.js >> Release\HtmlTerm.js
@@ -69,7 +66,7 @@ TYPE Source\randm\xfer\TYModemSend.js >> Release\HtmlTerm.js
 
 TYPE Source\HtmlTerm.js >> Release\HtmlTerm.js
 
-REM Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
+Z:\Programming\LintFreeClosureCompiler\bin\Release\LFCC.exe Release\HtmlTerm.js
 
 COPY Source\randm\crt\font\TFont437.js Release\HtmlTerm.font-437.js
 COPY Source\randm\crt\font\TFontAmiga.js Release\HtmlTerm.font-amiga.js
@@ -105,3 +102,11 @@ COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\html-template\
 COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-debug\
 COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-release\
 COPY Release\HtmlTerm.font-intl.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
+COPY Release\Blob.js ..\ftelnet\flash\html-template\
+COPY Release\Blob.js ..\ftelnet\flash\bin-debug\
+COPY Release\Blob.js ..\ftelnet\flash\bin-release\
+COPY Release\Blob.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
+COPY Release\FileSaver.js ..\ftelnet\flash\html-template\
+COPY Release\FileSaver.js ..\ftelnet\flash\bin-debug\
+COPY Release\FileSaver.js ..\ftelnet\flash\bin-release\
+COPY Release\FileSaver.js ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
