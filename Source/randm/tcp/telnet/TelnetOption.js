@@ -72,11 +72,31 @@ var TTelnetOption = function () {
 	this.SUPDUP = 21;
 	this.SUPDUPOutput = 22;
 	this.SendLocation = 23;
+
+    /// <summary>
+    /// Allows the TERMINAL-TYPE subnegotiation command to be used if both sides agree
+    /// </summary>
+    /// <remarks>
+    /// Defined in RFC 1091
+    /// 
+    /// Default is to not allow the TERMINAL-TYPE subnegotiation
+    /// </remarks>
 	this.TerminalType = 24;
+
 	this.EndOfRecord = 25;
 	this.TACACSUserIdentification = 26;
 	this.OutputMarking = 27;
+
+    /// <summary>
+    /// Allows the TTYLOC (Terminal Location Number) subnegotiation command to be used if both sides agree
+    /// </summary>
+    /// <remarks>
+    /// Defined in RFC 946
+    /// 
+    /// Default is to not allow the TTYLOC subnegotiation
+    /// </remarks>
 	this.TerminalLocationNumber = 28;
+
 	this.Telnet3270Regime = 29;
 	this.Xdot3PAD = 30;
 
