@@ -4388,8 +4388,8 @@ Ansi = new TAnsi();
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var WebSocketSupportsBinaryType = (('WebSocket' in window) && ('binaryType' in (new WebSocket("ws://localhost:53211"))));
-var WebSocketSupportsTypedArrays = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
+var WebSocketSupportsBinaryType = false; // TODO Disabled for now (('WebSocket' in window) && ('binaryType' in (new WebSocket("ws://localhost:53211"))));
+var WebSocketSupportsTypedArrays = false; // TODO Disabled for now (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
 
 var TTcpConnection = function () {
     // Public events
@@ -4429,14 +4429,17 @@ var TTcpConnection = function () {
 
         FWasConnected = false;
 
+        var WSProtocol = ('https:' === document.location.protocol ? 'wss://' : 'ws://');
         if (AProxyHostname === "") {
-            that.FWebSocket = new WebSocket("ws://" + AHostname + ":" + APort); 
+            that.FWebSocket = new WebSocket(WSProtocol + AHostname + ":" + APort);
         } else {
-            that.FWebSocket = new WebSocket("ws://" + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort);
+            that.FWebSocket = new WebSocket(WSProtocol + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort);
         }
 
-        // Enable binary mode
-        that.FWebSocket.binaryType = 'arraybuffer';
+        // Enable binary mode, if supported
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            that.FWebSocket.binaryType = 'arraybuffer';
+        }
 
         // Set event handlers
         that.FWebSocket.onclose = OnSocketClose;
@@ -4455,14 +4458,20 @@ var TTcpConnection = function () {
 
     this.flushTcpConnection = function () {
         var ToSendString = that.FOutputBuffer.toString();
-        var ToSendBytes = [];
+        
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
 
-        var i;
-        for (i = 0; i < ToSendString.length; i++) {
-            ToSendBytes.push(ToSendString.charCodeAt(i));
+            var i;
+            for (i = 0; i < ToSendString.length; i++) {
+                ToSendBytes.push(ToSendString.charCodeAt(i));
+            }
+
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send(ToSendString);
         }
 
-        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
         that.FOutputBuffer.clear();
     };
 
@@ -6312,46 +6321,6 @@ var THtmlTerm = function () {
                 Crt.WriteLn("seeing this message in error, and I'll look into it.  Be sure to let me know");
                 Crt.WriteLn("what browser you use, as well as which version it is.");
                 trace("HtmlTerm Error: WebSocket not supported");
-                return false;
-            } else if (!WebSocketSupportsBinaryType) {
-                Crt.WriteLn();
-                Crt.WriteLn("Sorry, but your browser doesn't support binary WebSocket frames!");
-                Crt.WriteLn();
-                Crt.WriteLn("I'm super lazy, so I've only implemented support for binary WebSocket frames");
-                Crt.WriteLn("in the proxy software that HtmlTerm uses.");
-                Crt.WriteLn();
-                Crt.WriteLn("If you can, try upgrading your web browser.  If that's not an option (ie you're");
-                Crt.WriteLn("already running the latest version your platform supports, like IE 8 on");
-                Crt.WriteLn("Windows XP), then try switching to a different web browser.");
-                Crt.WriteLn();
-                Crt.WriteLn("I'm not against supporting text frames, it's just more work so I'm not going to");
-                Crt.WriteLn("do it unless it's necessary.  So if you can't use a compatable browser, just");
-                Crt.WriteLn("let me know and I'll look into putting in the extra work.");
-                Crt.WriteLn();
-                Crt.WriteLn("Feel free to contact me (http://www.ftelnet.ca/contact/) if you think you're");
-                Crt.WriteLn("seeing this message in error, and I'll look into it.  Be sure to let me know");
-                Crt.WriteLn("what browser you use, as well as which version it is.");
-                trace("HtmlTerm Error: binaryType not supported");
-                return false;
-            } else if (!WebSocketSupportsTypedArrays) {
-                Crt.WriteLn();
-                Crt.WriteLn("Sorry, but your browser doesn't support the Uint8Array typed array!");
-                Crt.WriteLn();
-                Crt.WriteLn("I'm super lazy, so I've only implemented support for binary WebSocket frames");
-                Crt.WriteLn("in the proxy software that HtmlTerm uses, and they require Uint8Array to work.");
-                Crt.WriteLn();
-                Crt.WriteLn("If you can, try upgrading your web browser.  If that's not an option (ie you're");
-                Crt.WriteLn("already running the latest version your platform supports, like IE 8 on");
-                Crt.WriteLn("Windows XP), then try switching to a different web browser.");
-                Crt.WriteLn();
-                Crt.WriteLn("I'm not against supporting text frames, it's just more work so I'm not going to");
-                Crt.WriteLn("do it unless it's necessary.  So if you can't use a compatable browser, just");
-                Crt.WriteLn("let me know and I'll look into putting in the extra work.");
-                Crt.WriteLn();
-                Crt.WriteLn("Feel free to contact me (http://www.ftelnet.ca/contact/) if you think you're");
-                Crt.WriteLn("seeing this message in error, and I'll look into it.  Be sure to let me know");
-                Crt.WriteLn("what browser you use, as well as which version it is.");
-                trace("HtmlTerm Error: Uint8Array not supported");
                 return false;
             }
             
