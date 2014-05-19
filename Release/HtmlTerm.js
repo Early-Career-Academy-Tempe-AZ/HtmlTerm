@@ -4884,11 +4884,31 @@ var TTelnetOption = function () {
 	this.SUPDUP = 21;
 	this.SUPDUPOutput = 22;
 	this.SendLocation = 23;
+
+    /// <summary>
+    /// Allows the TERMINAL-TYPE subnegotiation command to be used if both sides agree
+    /// </summary>
+    /// <remarks>
+    /// Defined in RFC 1091
+    /// 
+    /// Default is to not allow the TERMINAL-TYPE subnegotiation
+    /// </remarks>
 	this.TerminalType = 24;
+
 	this.EndOfRecord = 25;
 	this.TACACSUserIdentification = 26;
 	this.OutputMarking = 27;
+
+    /// <summary>
+    /// Allows the TTYLOC (Terminal Location Number) subnegotiation command to be used if both sides agree
+    /// </summary>
+    /// <remarks>
+    /// Defined in RFC 946
+    /// 
+    /// Default is to not allow the TTYLOC subnegotiation
+    /// </remarks>
 	this.TerminalLocationNumber = 28;
+
 	this.Telnet3270Regime = 29;
 	this.Xdot3PAD = 30;
 
@@ -4965,6 +4985,7 @@ var TTelnetConnection = function () {
     // Private methods
     var HandleEcho = function (ACommand) { }; // Do nothing
     var HandleTerminalType = function () { }; // Do nothing
+    var HandleTerminalLocationNumber = function () { }; // Do nothing
     var HandleWindowSize = function () { }; // Do nothing
     var SendCommand = function (ACommand) { }; // Do nothing
     var SendDo = function (AOption) { }; // Do nothing
@@ -5040,6 +5061,50 @@ var TTelnetConnection = function () {
             that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
         } else {
             that.FWebSocket.send("\x00" + TerminalType);
+        }
+
+        SendSubnegotiateEnd();
+    };
+
+    HandleTerminalLocationNumber = function () {
+        SendWill(TelnetOption.TerminalLocationNumber);
+        SendSubnegotiate(TelnetOption.TerminalLocationNumber);
+
+        var InternetHostNumber = 0; // TODO This should be the client's IP address
+        var TerminalNumber = -1; // TODO This could be the web server's IP address
+
+        var SixtyFourBits = [];
+        SixtyFourBits.push(0); // Format 0
+        SixtyFourBits.push((InternetHostNumber & 0xFF000000) >> 24);
+        SixtyFourBits.push((InternetHostNumber & 0x00FF0000) >> 16);
+        SixtyFourBits.push((InternetHostNumber & 0x0000FF00) >> 8);
+        SixtyFourBits.push((InternetHostNumber & 0x000000FF) >> 0);
+        SixtyFourBits.push((TerminalNumber & 0xFF000000) >> 24);
+        SixtyFourBits.push((TerminalNumber & 0x00FF0000) >> 16);
+        SixtyFourBits.push((TerminalNumber & 0x0000FF00) >> 8);
+        SixtyFourBits.push((TerminalNumber & 0x000000FF) >> 0);
+
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+
+            var i;
+            for (i = 0; i < SixtyFourBits.length; i++) {
+                ToSendBytes.push(SixtyFourBits[i]);
+                if (SixtyFourBits[i] === TelnetCommand.IAC) {
+                    // Double up so it's not treated as an IAC
+                    ToSendBytes.push(TelnetCommand.IAC);
+                }
+            }
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            var i;
+            for (i = 0; i < SixtyFourBits.length; i++) {
+                that.FWebSocket.send(String.fromCharCode(SixtyFourBits[i]));
+                if (SixtyFourBits[i] === TelnetCommand.IAC) {
+                    // Double up so it's not treated as an IAC
+                    that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC));
+                }
+            }
         }
 
         SendSubnegotiateEnd();
@@ -5137,6 +5202,7 @@ var TTelnetConnection = function () {
                     case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
                     case TelnetOption.SuppressGoAhead: SendWill(B); break;
                     case TelnetOption.TerminalType: HandleTerminalType(); break;
+                    case TelnetOption.TerminalLocationNumber: HandleTerminalLocationNumber(); break;
                     case TelnetOption.WindowSize: HandleWindowSize(); break;
                     case TelnetOption.LineMode: SendWont(B); break;
                     default: SendWont(B); break;
@@ -5148,6 +5214,7 @@ var TTelnetConnection = function () {
                     case TelnetOption.TransmitBinary: SendWill(B); break;
                     case TelnetOption.Echo: HandleEcho(TelnetCommand.Dont); break;
                     case TelnetOption.SuppressGoAhead: SendWill(B); break;
+                    case TelnetOption.TerminalLocationNumber: SendWont(B); break;
                     case TelnetOption.WindowSize: SendWont(B); break;
                     case TelnetOption.LineMode: SendWont(B); break;
                     default: SendWont(B); break;
@@ -5159,6 +5226,7 @@ var TTelnetConnection = function () {
                     case TelnetOption.TransmitBinary: SendDo(B); break;
                     case TelnetOption.Echo: HandleEcho(TelnetCommand.Will); break;
                     case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.TerminalLocationNumber: SendDont(B); break;
                     case TelnetOption.WindowSize: SendDont(B); break;
                     case TelnetOption.LineMode: SendDont(B); break;
                     default: SendDont(B); break;
@@ -5170,6 +5238,7 @@ var TTelnetConnection = function () {
                     case TelnetOption.TransmitBinary: SendDo(B); break;
                     case TelnetOption.Echo: HandleEcho(TelnetCommand.Wont); break;
                     case TelnetOption.SuppressGoAhead: SendDo(B); break;
+                    case TelnetOption.TerminalLocationNumber: SendDont(B); break;
                     case TelnetOption.WindowSize: SendDont(B); break;
                     case TelnetOption.LineMode: SendDont(B); break;
                     default: SendDont(B); break;
