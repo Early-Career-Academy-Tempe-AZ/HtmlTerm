@@ -44,18 +44,24 @@ var TTelnetConnection = function () {
 
     this.flushTelnetConnection = function () {
         var ToSendString = that.FOutputBuffer.toString();
-        var ToSendBytes = [];
 
-        // Read 1 byte at a time, doubling up IAC's as necessary
-        var i;
-        for (i = 0; i < ToSendString.length; i++) {
-            ToSendBytes.push(ToSendString.charCodeAt(i));
-            if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
-                ToSendBytes.push(TelnetCommand.IAC);
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+
+            // Read 1 byte at a time, doubling up IAC's as necessary
+            var i;
+            for (i = 0; i < ToSendString.length; i++) {
+                ToSendBytes.push(ToSendString.charCodeAt(i));
+                if (ToSendString.charCodeAt(i) === TelnetCommand.IAC) {
+                    ToSendBytes.push(TelnetCommand.IAC);
+                }
             }
+
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send(ToSendString);
         }
 
-        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
         that.FOutputBuffer.clear();
     };
 
@@ -88,15 +94,20 @@ var TTelnetConnection = function () {
         SendWill(TelnetOption.TerminalType);
         SendSubnegotiate(TelnetOption.TerminalType);
 
-        var ToSendBytes = [];
-        ToSendBytes.push(0); // IS
-
         var TerminalType = "DEC-VT100"; // TODO
-        var i;
-        for (i = 0; i < TerminalType.length; i++) {
-            ToSendBytes.push(TerminalType.charCodeAt(i));
+
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+            ToSendBytes.push(0); // IS
+
+            var i;
+            for (i = 0; i < TerminalType.length; i++) {
+                ToSendBytes.push(TerminalType.charCodeAt(i));
+            }
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send("\x00" + TerminalType);
         }
-        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
 
         SendSubnegotiateEnd();
     };
@@ -111,16 +122,27 @@ var TTelnetConnection = function () {
         Size[2] = (FWindowSize.y >> 8) & 0xff;
         Size[3] = FWindowSize.y & 0xff;
 
-        var ToSendBytes = [];
-        var i;
-        for (i = 0; i < Size.length; i++) {
-            ToSendBytes.push(Size[i]);
-            if (Size[i] === TelnetCommand.IAC) {
-                // Double up so it's not treated as an IAC
-                ToSendBytes.push(TelnetCommand.IAC); 
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+            var i;
+            for (i = 0; i < Size.length; i++) {
+                ToSendBytes.push(Size[i]);
+                if (Size[i] === TelnetCommand.IAC) {
+                    // Double up so it's not treated as an IAC
+                    ToSendBytes.push(TelnetCommand.IAC);
+                }
+            }
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            var i;
+            for (i = 0; i < Size.length; i++) {
+                that.FWebSocket.send(String.fromCharCode(Size[i]));
+                if (Size[i] === TelnetCommand.IAC) {
+                    // Double up so it's not treated as an IAC
+                    that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC));
+                }
             }
         }
-        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
 
         SendSubnegotiateEnd();
     };
@@ -230,10 +252,14 @@ var TTelnetConnection = function () {
     // TODO Need NegotiateOutbound
 
     SendCommand = function (ACommand) {
-        var ToSendBytes = [];
-        ToSendBytes.push(TelnetCommand.IAC);
-        ToSendBytes.push(ACommand);
-        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(ACommand);
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC) + String.fromCharCode(ACommand));
+        }
     };
 
     SendDo = function (AOption) {
@@ -241,11 +267,15 @@ var TTelnetConnection = function () {
             // Haven't negotiated this option
             FNegotiatedOptions[AOption] = TelnetCommand.Do;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Do);
-            ToSendBytes.push(AOption);
-            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+                var ToSendBytes = [];
+                ToSendBytes.push(TelnetCommand.IAC);
+                ToSendBytes.push(TelnetCommand.Do);
+                ToSendBytes.push(AOption);
+                that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            } else {
+                that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC) + String.fromCharCode(TelnetCommand.Do) + String.fromCharCode(AOption));
+            }
         }
     };
 
@@ -254,11 +284,15 @@ var TTelnetConnection = function () {
             // Haven't negotiated this option
             FNegotiatedOptions[AOption] = TelnetCommand.Dont;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Dont);
-            ToSendBytes.push(AOption);
-            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+                var ToSendBytes = [];
+                ToSendBytes.push(TelnetCommand.IAC);
+                ToSendBytes.push(TelnetCommand.Dont);
+                ToSendBytes.push(AOption);
+                that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            } else {
+                that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC) + String.fromCharCode(TelnetCommand.Dont) + String.fromCharCode(AOption));
+            }
         }
     };
 
@@ -283,18 +317,26 @@ var TTelnetConnection = function () {
     };
 
     SendSubnegotiate = function (AOption) {
-        var ToSendBytes = [];
-        ToSendBytes.push(TelnetCommand.IAC);
-        ToSendBytes.push(TelnetCommand.Subnegotiation);
-        ToSendBytes.push(AOption);
-        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.Subnegotiation);
+            ToSendBytes.push(AOption);
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC) + String.fromCharCode(TelnetCommand.Subnegotiation) + String.fromCharCode(AOption));
+        }
     };
 
     SendSubnegotiateEnd = function () {
-        var ToSendBytes = [];
-        ToSendBytes.push(TelnetCommand.IAC);
-        ToSendBytes.push(TelnetCommand.EndSubnegotiation);
-        that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+            ToSendBytes.push(TelnetCommand.IAC);
+            ToSendBytes.push(TelnetCommand.EndSubnegotiation);
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC) + String.fromCharCode(TelnetCommand.EndSubnegotiation));
+        }
     };
 
     SendWill = function (AOption) {
@@ -302,11 +344,15 @@ var TTelnetConnection = function () {
             // Haven't negotiated this option
             FNegotiatedOptions[AOption] = TelnetCommand.Will;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Will);
-            ToSendBytes.push(AOption);
-            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+                var ToSendBytes = [];
+                ToSendBytes.push(TelnetCommand.IAC);
+                ToSendBytes.push(TelnetCommand.Will);
+                ToSendBytes.push(AOption);
+                that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            } else {
+                that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC) + String.fromCharCode(TelnetCommand.Will) + String.fromCharCode(AOption));
+            }
         }
     };
 
@@ -315,11 +361,15 @@ var TTelnetConnection = function () {
             // Haven't negotiated this option
             FNegotiatedOptions[AOption] = TelnetCommand.Wont;
 
-            var ToSendBytes = [];
-            ToSendBytes.push(TelnetCommand.IAC);
-            ToSendBytes.push(TelnetCommand.Wont);
-            ToSendBytes.push(AOption);
-            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+                var ToSendBytes = [];
+                ToSendBytes.push(TelnetCommand.IAC);
+                ToSendBytes.push(TelnetCommand.Wont);
+                ToSendBytes.push(AOption);
+                that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+            } else {
+                that.FWebSocket.send(String.fromCharCode(TelnetCommand.IAC) + String.fromCharCode(TelnetCommand.Wont) + String.fromCharCode(AOption));
+            }
         }
     };
 
