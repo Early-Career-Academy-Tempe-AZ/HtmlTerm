@@ -18,7 +18,7 @@
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var WebSocketSupportsBinaryType = false; // TODO Disabled for now (('WebSocket' in window) && ('binaryType' in (new WebSocket("ws://localhost:53211"))));
+var WebSocketSupportsBinaryType = false; // TODO Disabled for now (('WebSocket' in window) && ('binaryType' in (new WebSocket("ws://my.ftelnet.ca:53211"))));
 var WebSocketSupportsTypedArrays = false; // TODO Disabled for now (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
 
 var TTcpConnection = function () {
