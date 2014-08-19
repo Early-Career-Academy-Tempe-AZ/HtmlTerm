@@ -4388,7 +4388,7 @@ Ansi = new TAnsi();
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var WebSocketSupportsBinaryType = false; // TODO Disabled for now (('WebSocket' in window) && ('binaryType' in (new WebSocket("ws://localhost:53211"))));
+var WebSocketSupportsBinaryType = false; // TODO Disabled for now (('WebSocket' in window) && ('binaryType' in (new WebSocket("ws://my.ftelnet.ca:53211"))));
 var WebSocketSupportsTypedArrays = false; // TODO Disabled for now (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
 
 var TTcpConnection = function () {
@@ -4983,6 +4983,7 @@ var TTelnetConnection = function () {
     var FWindowSize;
 
     // Private methods
+    var HandleAreYouThere = function () { }; // Do nothing
     var HandleEcho = function (ACommand) { }; // Do nothing
     var HandleTerminalType = function () { }; // Do nothing
     var HandleTerminalLocationNumber = function () { }; // Do nothing
@@ -5017,6 +5018,16 @@ var TTelnetConnection = function () {
         }
 
         that.FOutputBuffer.clear();
+    };
+
+    HandleAreYouThere = function () {
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+            ToSendBytes.push(".".charCodeAt(0));
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send(".");
+        }
     };
 
     HandleEcho = function (ACommand) {
@@ -5181,11 +5192,14 @@ var TTelnetConnection = function () {
                         case TelnetCommand.Break:
                         case TelnetCommand.InterruptProcess:
                         case TelnetCommand.AbortOutput:
-                        case TelnetCommand.AreYouThere:
                         case TelnetCommand.EraseCharacter:
                         case TelnetCommand.EraseLine:
                         case TelnetCommand.GoAhead:
                             // We recognize, but ignore these for now
+                            FNegotiationState = TelnetNegotiationState.Data;
+                            break;
+                        case TelnetCommand.AreYouThere:
+                            HandleAreYouThere();
                             FNegotiationState = TelnetNegotiationState.Data;
                             break;
                         case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
@@ -5198,6 +5212,11 @@ var TTelnetConnection = function () {
             }
             else if (FNegotiationState === TelnetNegotiationState.Do) {
                 switch (B) {
+                    case TelnetCommand.AreYouThere:
+                        // TWGS incorrectly sends a DO AYT and expects a response
+                        SendWill(TelnetCommand.AreYouThere);
+                        FNegotiatedOptions[TelnetCommand.AreYouThere] = 0;
+                        break;
                     case TelnetOption.TransmitBinary: SendWill(B); break;
                     case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
                     case TelnetOption.SuppressGoAhead: SendWill(B); break;
@@ -6538,12 +6557,12 @@ var THtmlTerm = function () {
         if (FConnection === null) { return; }
         if (!FConnection.connected) { return; }
 
-        FConnection.close();
         // TODO Should not set to null, but set to default (empty) functions
         FConnection.onclose = null;
         FConnection.onconnect = null;
         FConnection.onioerror = null;
         FConnection.onsecurityerror = null;
+        FConnection.close();
         FConnection = null;
 
         OnConnectionClose("Disconnect");

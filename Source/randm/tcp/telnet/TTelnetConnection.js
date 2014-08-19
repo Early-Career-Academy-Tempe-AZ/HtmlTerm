@@ -30,6 +30,7 @@ var TTelnetConnection = function () {
     var FWindowSize;
 
     // Private methods
+    var HandleAreYouThere = function () { }; // Do nothing
     var HandleEcho = function (ACommand) { }; // Do nothing
     var HandleTerminalType = function () { }; // Do nothing
     var HandleTerminalLocationNumber = function () { }; // Do nothing
@@ -64,6 +65,16 @@ var TTelnetConnection = function () {
         }
 
         that.FOutputBuffer.clear();
+    };
+
+    HandleAreYouThere = function () {
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            var ToSendBytes = [];
+            ToSendBytes.push(".".charCodeAt(0));
+            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
+        } else {
+            that.FWebSocket.send(".");
+        }
     };
 
     HandleEcho = function (ACommand) {
@@ -228,11 +239,14 @@ var TTelnetConnection = function () {
                         case TelnetCommand.Break:
                         case TelnetCommand.InterruptProcess:
                         case TelnetCommand.AbortOutput:
-                        case TelnetCommand.AreYouThere:
                         case TelnetCommand.EraseCharacter:
                         case TelnetCommand.EraseLine:
                         case TelnetCommand.GoAhead:
                             // We recognize, but ignore these for now
+                            FNegotiationState = TelnetNegotiationState.Data;
+                            break;
+                        case TelnetCommand.AreYouThere:
+                            HandleAreYouThere();
                             FNegotiationState = TelnetNegotiationState.Data;
                             break;
                         case TelnetCommand.Do: FNegotiationState = TelnetNegotiationState.Do; break;
@@ -245,6 +259,11 @@ var TTelnetConnection = function () {
             }
             else if (FNegotiationState === TelnetNegotiationState.Do) {
                 switch (B) {
+                    case TelnetCommand.AreYouThere:
+                        // TWGS incorrectly sends a DO AYT and expects a response
+                        SendWill(TelnetCommand.AreYouThere);
+                        FNegotiatedOptions[TelnetCommand.AreYouThere] = 0;
+                        break;
                     case TelnetOption.TransmitBinary: SendWill(B); break;
                     case TelnetOption.Echo: HandleEcho(TelnetCommand.Do); break;
                     case TelnetOption.SuppressGoAhead: SendWill(B); break;

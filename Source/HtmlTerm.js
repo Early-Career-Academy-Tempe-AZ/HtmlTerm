@@ -207,12 +207,12 @@ var THtmlTerm = function () {
         if (FConnection === null) { return; }
         if (!FConnection.connected) { return; }
 
-        FConnection.close();
         // TODO Should not set to null, but set to default (empty) functions
         FConnection.onclose = null;
         FConnection.onconnect = null;
         FConnection.onioerror = null;
         FConnection.onsecurityerror = null;
+        FConnection.close();
         FConnection = null;
 
         OnConnectionClose("Disconnect");
