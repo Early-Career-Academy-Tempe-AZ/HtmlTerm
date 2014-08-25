@@ -35,6 +35,7 @@ var TTcpConnection = function () {
     // Protected variables
     this.FInputBuffer = null;
     this.FOutputBuffer = null;
+    this.FProtocol = 'plain';
     this.FWebSocket = null;
 
     // Private methods
@@ -55,15 +56,22 @@ var TTcpConnection = function () {
 
     this.connect = function (AHostname, APort, AProxyHostname, AProxyPort) {
         if (AProxyHostname === undefined) { AProxyHostname = ""; }
-        if (AProxyPort === undefined) { AProxyPort = 11235; }
+        if (AProxyPort === undefined) { AProxyPort = 1123; }
 
         FWasConnected = false;
 
+        var Protocols;
+        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+            Protocols = ['binary', 'base64', 'plain'];
+        } else {
+            Protocols = ['base64', 'plain'];
+        }
+
         var WSProtocol = ('https:' === document.location.protocol ? 'wss://' : 'ws://');
         if (AProxyHostname === "") {
-            that.FWebSocket = new WebSocket(WSProtocol + AHostname + ":" + APort);
+            that.FWebSocket = new WebSocket(WSProtocol + AHostname + ":" + APort, Protocols);
         } else {
-            that.FWebSocket = new WebSocket(WSProtocol + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort);
+            that.FWebSocket = new WebSocket(WSProtocol + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort, Protocols);
         }
 
         // Enable binary mode, if supported
@@ -87,21 +95,15 @@ var TTcpConnection = function () {
     });
 
     this.flushTcpConnection = function () {
-        var ToSendString = that.FOutputBuffer.toString();
-        
-        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
-            var ToSendBytes = [];
+        var ToSendBytes = [];
 
-            var i;
-            for (i = 0; i < ToSendString.length; i++) {
-                ToSendBytes.push(ToSendString.charCodeAt(i));
-            }
-
-            that.FWebSocket.send(new Uint8Array(ToSendBytes).buffer);
-        } else {
-            that.FWebSocket.send(ToSendString);
+        that.FOutputBuffer.position = 0;
+        while (that.FOutputBuffer.bytesAvailable > 0) {
+            var B = that.FOutputBuffer.readUnsignedByte();
+            ToSendBytes.push(B);
         }
 
+        that.Send(ToSendBytes);
         that.FOutputBuffer.clear();
     };
 
@@ -127,6 +129,12 @@ var TTcpConnection = function () {
     };
 
     OnSocketOpen = function () {
+        if (that.FWebSocket.protocol) {
+            that.FProtocol = that.FWebSocket.protocol;
+        } else {
+            that.FProtocol = 'plain';
+        }
+
         FWasConnected = true;
         that.onconnect();
     };
@@ -142,11 +150,16 @@ var TTcpConnection = function () {
         var Data = new ByteArray();
 
         // Write the incoming message to the input buffer
-        if (e.data instanceof ArrayBuffer) {
+        var i;
+        if (that.FProtocol === 'binary') {
             var u8 = new Uint8Array(e.data);
-            var i;
             for (i = 0; i < u8.length; i++) {
                 Data.writeByte(u8[i]);
+            }
+        } else if (that.FProtocol === 'base64') {
+            var decoded = Base64.decode(e.data, 0);
+            for (i = 0; i < decoded.length; i++) {
+                Data.writeByte(decoded[i]);
             }
         } else {
             Data.writeString(e.data);
@@ -218,6 +231,23 @@ var TTcpConnection = function () {
 
     this.readUTFBytes = function (ALength) {
         return that.FInputBuffer.readUTFBytes(ALength);
+    };
+
+    this.Send = function (data) {
+        if (that.FProtocol === 'binary') {
+            that.FWebSocket.send(new Uint8Array(data).buffer);
+        } else if (that.FProtocol === 'base64') {
+            that.FWebSocket.send(Base64.encode(data));
+        } else {
+            var ToSendString = '';
+
+            var i;
+            for (i = 0; i < data.length; i++) {
+                ToSendString += String.fromCharCode(data[i]);
+            }
+
+            that.FWebSocket.send(ToSendString);
+        }
     };
 
     // Remap all the write* functions to operate on our output buffer instead

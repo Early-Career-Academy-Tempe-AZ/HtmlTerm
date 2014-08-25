@@ -62,6 +62,7 @@
     <Content Include="Source\client\savefilesbutton\Up.png" />
     <Content Include="Source\FileSaver.js" />
     <Content Include="Source\Helper.js" />
+    <Content Include="Source\string-base64.js" />
     <Content Include="Source\HtmlTerm.js" />
     <Content Include="Source\ImpliedGlobals.js" />
     <Content Include="Source\randm\actionscript\ByteArray.js" />

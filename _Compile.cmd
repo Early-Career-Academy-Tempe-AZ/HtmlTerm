@@ -26,6 +26,7 @@ TYPE Source\randm\actionscript\Keyboard.js >> Release\HtmlTerm.js
 TYPE Source\randm\actionscript\Point.js >> Release\HtmlTerm.js
 
 TYPE Source\Helper.js >> Release\HtmlTerm.js
+TYPE Source\string-base64.js >> Release\HtmlTerm.js
 TYPE Source\StringUtils.js >> Release\HtmlTerm.js
 
 TYPE Source\client\savefilesbutton\TSaveFilesButton.js >> Release\HtmlTerm.js
@@ -74,32 +75,5 @@ COPY Source\randm\crt\font\TFontAtari.js Release\HtmlTerm.font-atari.js
 COPY Source\randm\crt\font\TFontC64.js Release\HtmlTerm.font-c64.js
 COPY Source\randm\crt\font\TFontIntl.js Release\HtmlTerm.font-intl.js
 
-COPY Release\HtmlTerm.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.compiled.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.font-437.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.font-437.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.font-437.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.font-amiga.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.font-amiga.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.font-amiga.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.font-atari.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.font-c64.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.font-c64.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.font-c64.js ..\ftelnet\flash\bin-release\
-COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\html-template\
-COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-debug\
-COPY Release\HtmlTerm.font-intl.js ..\ftelnet\flash\bin-release\
-COPY Release\Blob.js ..\ftelnet\flash\html-template\
-COPY Release\Blob.js ..\ftelnet\flash\bin-debug\
-COPY Release\Blob.js ..\ftelnet\flash\bin-release\
-COPY Release\FileSaver.js ..\ftelnet\flash\html-template\
-COPY Release\FileSaver.js ..\ftelnet\flash\bin-debug\
-COPY Release\FileSaver.js ..\ftelnet\flash\bin-release\
-COPY Release\* ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\
-COPY Release\img\* ..\my.fTelnet.ca\my.fTelnet.ca\HtmlTerm\img\
+COPY Release\* ..\my.fTelnet.ca\HtmlTerm\
+COPY Release\img\* ..\my.fTelnet.ca\HtmlTerm\img\
