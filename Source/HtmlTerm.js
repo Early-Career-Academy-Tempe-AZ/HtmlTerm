@@ -207,11 +207,10 @@ var THtmlTerm = function () {
         if (FConnection === null) { return; }
         if (!FConnection.connected) { return; }
 
-        // TODO Should not set to null, but set to default (empty) functions
-        FConnection.onclose = null;
-        FConnection.onconnect = null;
-        FConnection.onioerror = null;
-        FConnection.onsecurityerror = null;
+        FConnection.onclose = function () { }; // Do nothing
+        FConnection.onconnect = function () { }; // Do nothing
+        FConnection.onioerror = function () { }; // Do nothing
+        FConnection.onsecurityerror = function () { }; // Do nothing
         FConnection.close();
         FConnection = null;
 

@@ -4503,8 +4503,9 @@ Ansi = new TAnsi();
   along with HtmlTerm.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var WebSocketSupportsBinaryType = false; // TODO Disabled for now (('WebSocket' in window) && ('binaryType' in (new WebSocket("ws://my.ftelnet.ca:53211"))));
-var WebSocketSupportsTypedArrays = false; // TODO Disabled for now (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
+var WebSocketProtocol = ('https:' === document.location.protocol ? 'wss' : 'ws');
+var WebSocketSupportsTypedArrays = (('Uint8Array' in window) && ('set' in Uint8Array.prototype));
+var WebSocketSupportsBinaryType = (WebSocketSupportsTypedArrays && ('binaryType' in WebSocket.prototype || !!(new WebSocket(WebSocketProtocol + '://.').binaryType)));
 
 var TTcpConnection = function () {
     // Public events
@@ -4552,15 +4553,14 @@ var TTcpConnection = function () {
             Protocols = ['base64', 'plain'];
         }
 
-        var WSProtocol = ('https:' === document.location.protocol ? 'wss://' : 'ws://');
-        if (AProxyHostname === "") {
-            that.FWebSocket = new WebSocket(WSProtocol + AHostname + ":" + APort, Protocols);
+        if (AProxyHostname === '') {
+            that.FWebSocket = new WebSocket(WebSocketProtocol + '://' + AHostname + ':' + APort, Protocols);
         } else {
-            that.FWebSocket = new WebSocket(WSProtocol + AProxyHostname + ":" + AProxyPort + "/" + AHostname + "/" + APort, Protocols);
+            that.FWebSocket = new WebSocket(WebSocketProtocol + '://' + AProxyHostname + ':' + AProxyPort + '/' + AHostname + '/' + APort, Protocols);
         }
 
         // Enable binary mode, if supported
-        if (WebSocketSupportsBinaryType && WebSocketSupportsTypedArrays) {
+        if (Protocols.indexOf('binary') >= 0) {
             that.FWebSocket.binaryType = 'arraybuffer';
         }
 
@@ -6637,11 +6637,10 @@ var THtmlTerm = function () {
         if (FConnection === null) { return; }
         if (!FConnection.connected) { return; }
 
-        // TODO Should not set to null, but set to default (empty) functions
-        FConnection.onclose = null;
-        FConnection.onconnect = null;
-        FConnection.onioerror = null;
-        FConnection.onsecurityerror = null;
+        FConnection.onclose = function () { }; // Do nothing
+        FConnection.onconnect = function () { }; // Do nothing
+        FConnection.onioerror = function () { }; // Do nothing
+        FConnection.onsecurityerror = function () { }; // Do nothing
         FConnection.close();
         FConnection = null;
 
