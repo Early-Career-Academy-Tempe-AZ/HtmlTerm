@@ -401,7 +401,7 @@ var TTelnetConnection = function () {
     }
     FNegotiationState = TelnetNegotiationState.Data;
     FTerminalTypeIndex = 0;
-    FTerminalTypes = ["ansi-bbs", "cp437"];
+    FTerminalTypes = ["ansi-bbs", "ansi", "cp437"];
     FWindowSize = 0; // TODO
 };
 
