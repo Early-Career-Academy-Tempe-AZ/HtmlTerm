@@ -5125,6 +5125,8 @@ var TTelnetConnection = function () {
     var FLocalEcho;
     var FNegotiatedOptions;
     var FNegotiationState;
+    var FTerminalTypeIndex;
+    var FTerminalTypes;
     var FWindowSize;
 
     // Private methods
@@ -5194,7 +5196,7 @@ var TTelnetConnection = function () {
         SendWill(TelnetOption.TerminalType);
         SendSubnegotiate(TelnetOption.TerminalType);
 
-        var TerminalType = "DEC-VT100"; // TODO
+        var TerminalType = FTerminalTypes[FTerminalTypeIndex];
         var ToSendBytes = [];
         ToSendBytes.push(0); // IS
 
@@ -5205,6 +5207,11 @@ var TTelnetConnection = function () {
         that.Send(ToSendBytes);
 
         SendSubnegotiateEnd();
+
+        // Move to next terminal type, in case we're asked for an alternate
+        if (FTerminalTypeIndex < (FTerminalTypes.length - 1)) {
+            FTerminalTypeIndex += 1;
+        }
     };
 
     HandleTerminalLocationNumber = function () {
@@ -5491,6 +5498,8 @@ var TTelnetConnection = function () {
         FNegotiatedOptions[i] = 0;
     }
     FNegotiationState = TelnetNegotiationState.Data;
+    FTerminalTypeIndex = 0;
+    FTerminalTypes = ["ansi-bbs", "cp437"];
     FWindowSize = 0; // TODO
 };
 
