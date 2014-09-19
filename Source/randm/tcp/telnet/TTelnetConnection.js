@@ -29,7 +29,6 @@ var TTelnetConnection = function () {
     var FNegotiationState;
     var FTerminalTypeIndex;
     var FTerminalTypes;
-    var FWindowSize;
 
     // Private methods
     var HandleAreYouThere = function () { }; // Do nothing
@@ -113,6 +112,8 @@ var TTelnetConnection = function () {
         // Move to next terminal type, in case we're asked for an alternate
         if (FTerminalTypeIndex < (FTerminalTypes.length - 1)) {
             FTerminalTypeIndex += 1;
+        } else {
+            FTerminalTypeIndex = 0;
         }
     };
 
@@ -154,10 +155,10 @@ var TTelnetConnection = function () {
         SendSubnegotiate(TelnetOption.WindowSize);
 
         var Size = [];
-        Size[0] = (FWindowSize.x >> 8) & 0xff;
-        Size[1] = FWindowSize.x & 0xff;
-        Size[2] = (FWindowSize.y >> 8) & 0xff;
-        Size[3] = FWindowSize.y & 0xff;
+        Size[0] = (Crt.WindCols >> 8) & 0xff;
+        Size[1] = Crt.WindCols & 0xff;
+        Size[2] = (Crt.WindRows >> 8) & 0xff;
+        Size[3] = Crt.WindRows & 0xff;
 
         var ToSendBytes = [];
         var i;
@@ -383,13 +384,6 @@ var TTelnetConnection = function () {
         }
     };
 
-    this.__defineSetter__("WindowSize", function (AWindowSize) {
-        FWindowSize = AWindowSize;
-        if (FNegotiatedOptions[TelnetOption.WindowSize] === TelnetCommand.Will) {
-            HandleWindowSize();
-        }
-    });
-
     // Constructor
     TTcpConnection.call(this);
 
@@ -401,8 +395,7 @@ var TTelnetConnection = function () {
     }
     FNegotiationState = TelnetNegotiationState.Data;
     FTerminalTypeIndex = 0;
-    FTerminalTypes = ["ansi-bbs", "ansi", "cp437"];
-    FWindowSize = 0; // TODO
+    FTerminalTypes = ["ansi-bbs", "ansi", "cp437", "cp437"]; // cp437 twice as a cheat since you're supposed to repeat the last item before going to the first item
 };
 
 TTelnetConnection.prototype = new TTcpConnectionSurrogate();
