@@ -36,6 +36,7 @@ var TAnsi = function () {
     var FAnsiParserState;
     var FAnsiXY;
 
+    // TODO: http://cvs.synchro.net/cgi-bin/viewcvs.cgi/*checkout*/src/conio/cterm.txt?content-type=text%2Fplain&revision=HEAD
     var AnsiCommand = function (ACommand) {
         var Colour = 0;
         var X = 0;
