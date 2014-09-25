@@ -55,9 +55,10 @@ var TTcpConnection = function () {
         }
     };
 
-    this.connect = function (AHostname, APort, AProxyHostname, AProxyPort) {
+    this.connect = function (AHostname, APort, AProxyHostname, AProxyPort, AProxyPortSecure) {
         if (AProxyHostname === undefined) { AProxyHostname = ""; }
         if (AProxyPort === undefined) { AProxyPort = 1123; }
+        if (AProxyPortSecure === undefined) { AProxyPortSecure = 11235; }
 
         FWasConnected = false;
 
@@ -76,7 +77,7 @@ var TTcpConnection = function () {
         if (AProxyHostname === '') {
             that.FWebSocket = new WebSocket(WebSocketProtocol + '://' + AHostname + ':' + APort, Protocols);
         } else {
-            that.FWebSocket = new WebSocket(WebSocketProtocol + '://' + AProxyHostname + ':' + AProxyPort + '/' + AHostname + '/' + APort, Protocols);
+            that.FWebSocket = new WebSocket(WebSocketProtocol + '://' + AProxyHostname + ':' + (WebSocketProtocol === 'wss' ? AProxyPortSecure : AProxyPort) + '/' + AHostname + '/' + APort, Protocols);
         }
 
         // Enable binary mode, if supported

@@ -42,6 +42,7 @@ var THtmlTerm = function () {
     var FPort = 1123;
     var FProxyHostname = "";
     var FProxyPort = 1123;
+    var FProxyPortSecure = 11235;
     var FScreenColumns = 80;
     var FScreenRows = 25;
     var FServerName = "fTelnet / HtmlTerm / GameSrv Support Server";
@@ -195,7 +196,7 @@ var THtmlTerm = function () {
             FConnection.connect(FHostname, FPort);
         } else {
             that.UpdateStatusBar(" Connecting to " + FHostname + ":" + FPort + " via proxy");
-            FConnection.connect(FHostname, FPort, FProxyHostname, FProxyPort);
+            FConnection.connect(FHostname, FPort, FProxyHostname, FProxyPort, FProxyPortSecure);
         }
     };
 
@@ -509,6 +510,14 @@ var THtmlTerm = function () {
 
     this.__defineSetter__("ProxyPort", function (AProxyPort) {
         FProxyPort = AProxyPort;
+    });
+
+    this.__defineGetter__("ProxyPortSecure", function () {
+        return FProxyPortSecure;
+    });
+
+    this.__defineSetter__("ProxyPortSecure", function (AProxyPortSecure) {
+        FProxyPortSecure = AProxyPortSecure;
     });
 
     this.__defineGetter__("ScreenColumns", function () {
