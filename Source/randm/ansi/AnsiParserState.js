@@ -36,5 +36,15 @@ var TAnsiParserState = function () {
 	/// The last received character was a [
 	/// </summary>
 	this.Bracket = 2;
+
+    /// <summary>
+    /// The last received character was a parameter byte (0 to ?)
+    /// </summary>
+	this.ParameterByte = 3;
+
+    /// <summary>
+    /// The last received character was a intermediate byte (space to /)
+    /// </summary>
+	this.IntermediateByte = 4;
 };
 AnsiParserState = new TAnsiParserState();
