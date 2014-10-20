@@ -833,6 +833,10 @@ var TCrt = function () {
         }
 
         FKeyBuf.push(new KeyPressEvent(ke, keyString));
+
+        if (keyString) {
+            ke.preventDefault();
+        }
     };
 
     this.PushKeyDown = function (pushedCharCode, pushedKeyCode, ctrl, alt, shift) {
